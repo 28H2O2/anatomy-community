@@ -1,0 +1,28 @@
+{
+  "id": "floating-caliper-disc-brake",
+  "title": "Floating-caliper disc brake",
+  "author": "gudguliai",
+  "prompt": "/anatomy build the brake mechanism from a 2013 Kia Sorento — how a floating caliper clamps a vented rotor, interactive",
+  "kind": "SVG + 3D",
+  "agent": "Other",
+  "model": "Muse Wonder",
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081"
+  },
+  "build": [
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "page": "src/brake-anatomy.html"
+  },
+  "preview": "page",
+  "license": "MIT",
+  "tags": [
+    "brakes",
+    "automotive",
+    "hydraulics"
+  ],
+  "created": "2026-10-12"
+}
