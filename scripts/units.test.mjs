@@ -43,6 +43,11 @@ test("tokens spent are read as a whole number", async () => {
   assert.ok(validateFigure({ ...good, tokens: -5 }).some((e) => /tokens/.test(e)));
 });
 
+test("Antigravity is a known agent", () => {
+  assert.deepEqual(validateFigure({ ...good, agent: "Antigravity" }), []);
+  assert.ok(validateFigure({ ...good, agent: "Cursor" }).some((e) => /agent must be one of/.test(e)));
+});
+
 test("outside contributors must name the model", () => {
   assert.ok(validateFigure(good, { requireModel: true }).some((e) => /model is required/.test(e)));
   assert.deepEqual(validateFigure({ ...good, model: "Claude Opus 5.5" }, { requireModel: true }), []);

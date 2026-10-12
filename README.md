@@ -30,7 +30,7 @@ figures/<author>/<id>/
 
 There are two ways. Neither needs you to fork or use git by hand.
 
-### With your agent (Claude Code, OpenCode or Codex)
+### With your agent (Claude Code, OpenCode, Codex or Antigravity)
 
 **You need** the [Anatomy skill](https://github.com/wheresryan22/anatomy) in a version with `scripts/publish.mjs`, and the [GitHub CLI](https://cli.github.com/) signed in (`gh auth login`). [Docker](https://www.docker.com/) is optional, for running the same locked checks before you send.
 

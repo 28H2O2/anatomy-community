@@ -1,6 +1,6 @@
 export const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export const KINDS = ["SVG", "SVG + WebGL", "SVG + 3D", "SVG + WebGL + 3D"];
-export const AGENTS = ["Claude Code", "OpenCode", "Codex", "Other"];
+export const AGENTS = ["Claude Code", "OpenCode", "Codex", "Antigravity", "Other"];
 export const LICENSES = ["MIT", "CC-BY-4.0"];
 const GITHUB = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/;
 const COMMIT = /^[0-9a-f]{40}$/;
