@@ -6,6 +6,9 @@ import { ID, validateFigure } from "./schema.mjs";
 
 export const PREVIEW_LIMIT = 400 << 10;
 export const POSTER_LIMIT = 1536 << 10;
+export const LIVE_LIMIT = 4 << 20;
+
+export const isPage = (bytes) => bytes.length <= LIVE_LIMIT && /^\s*<!doctype html>/i.test(bytes.subarray(0, 64).toString("utf8"));
 
 export const isWebp = (bytes) => bytes.length > 12 && bytes.subarray(0, 4).toString("latin1") === "RIFF" && bytes.subarray(8, 12).toString("latin1") === "WEBP";
 
@@ -59,6 +62,28 @@ export function indexPages(figuresIn, { repo }) {
   return pages;
 }
 
+export function feedOf(figures, { branch }) {
+  return {
+    updated: new Date().toISOString(),
+    figures: newestFirst(figures).map((f) => ({
+      id: f.id,
+      author: f.author,
+      title: f.title,
+      prompt: f.prompt,
+      kind: f.kind,
+      agent: f.agent,
+      model: f.model ?? null,
+      tags: f.tags ?? [],
+      license: f.license,
+      created: f.created,
+      preview: `previews/${folderOf(f)}.webp`,
+      card: existsSync(join(branch, "cards", f.author.toLowerCase(), `${f.id}.webp`)) ? `cards/${folderOf(f)}.webp` : null,
+      live: existsSync(join(branch, "live", f.author.toLowerCase(), `${f.id}.html`)) ? `live/${folderOf(f)}.html` : null,
+      source: `figures/${folderOf(f)}`,
+    })),
+  };
+}
+
 export const latestOf = (figures) => newestFirst(figures).slice(0, LATEST);
 
 function walk(dir, out = []) {
@@ -79,24 +104,29 @@ export function publishPreviews({ artifact, branch, figuresFile, repo }) {
     if (!statSync(join(artifact, author)).isDirectory()) continue;
     for (const id of readdirSync(join(artifact, author))) {
       const folder = `${author}/${id}`;
-      const source = join(artifact, author, id, "preview.webp");
       if (!AUTHOR.test(author) || !ID.test(id) || !wanted.has(folder)) {
         problems.push(`${folder}: not a figure on main, skipped`);
         continue;
       }
-      if (!existsSync(source)) continue;
-      const bytes = readFileSync(source);
-      if (!isWebp(bytes) || bytes.length > PREVIEW_LIMIT) {
-        problems.push(`${folder}: preview.webp is not a WebP under 400 KB, skipped`);
-        continue;
+      for (const [file, dir, ext, ok, rule] of [
+        ["preview.webp", "previews", "webp", (b) => isWebp(b) && b.length <= PREVIEW_LIMIT, "a WebP under 400 KB"],
+        ["card.webp", "cards", "webp", (b) => isWebp(b) && b.length <= PREVIEW_LIMIT, "a WebP under 400 KB"],
+        ["live.html", "live", "html", isPage, "an HTML page under 4 MB"],
+      ]) {
+        const from = join(artifact, author, id, file);
+        if (!existsSync(from)) continue;
+        if (!ok(readFileSync(from))) {
+          problems.push(`${folder}: ${file} is not ${rule}, skipped`);
+          continue;
+        }
+        mkdirSync(join(branch, dir, author), { recursive: true });
+        cpSync(from, join(branch, dir, author, `${id}.${ext}`));
+        if (dir === "previews") copied++;
       }
-      mkdirSync(join(branch, "previews", author), { recursive: true });
-      cpSync(source, join(branch, "previews", author, `${id}.webp`));
-      copied++;
     }
   }
-  for (const file of walk(join(branch, "previews"))) {
-    const match = file.slice(join(branch, "previews").length + 1).match(/^([^/]+)\/([^/]+)\.webp$/);
+  for (const dir of ["previews", "cards", "live"]) for (const file of walk(join(branch, dir))) {
+    const match = file.slice(join(branch, dir).length + 1).match(/^([^/]+)\/([^/]+)\.(?:webp|html)$/);
     if (!match || !wanted.has(`${match[1]}/${match[2]}`)) rmSync(file);
   }
   const shown = figures.filter((f) => existsSync(join(branch, "previews", f.author.toLowerCase(), `${f.id}.webp`)));
@@ -105,6 +135,7 @@ export function publishPreviews({ artifact, branch, figuresFile, repo }) {
     mkdirSync(join(branch, path, ".."), { recursive: true });
     writeFileSync(join(branch, path), text);
   }
+  writeFileSync(join(branch, "index.json"), JSON.stringify(feedOf(shown, { branch }), null, 1) + "\n");
   const latest = latestOf(shown);
   if (latest.length) {
     mkdirSync(join(branch, "latest"), { recursive: true });

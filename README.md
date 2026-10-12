@@ -17,7 +17,7 @@
 
 A shared collection of figures made with the Anatomy skill, in any theme and colours. Each figure is stored as its **source**: the `build.mjs` the skill wrote, plus a `figure.json` that says who made it, with what prompt and with which skill version. There are no built pages or images in `main`.
 
-Because every Anatomy figure rebuilds byte for byte from its source, CI rebuilds each one on every check, in a locked sandbox, and makes the pages and the preview image itself. The previews live on the [`previews`](https://github.com/wheresryan22/anatomy-community/tree/previews) branch, which CI rewrites after every merge.
+Because every Anatomy figure rebuilds byte for byte from its source, CI rebuilds each one on every check, in a locked sandbox, and makes the pages and the preview image itself. The previews live on the [`previews`](https://github.com/wheresryan22/anatomy-community/tree/previews) branch, which CI rewrites after every merge. Next to each preview, CI also makes a **card**: the light page photographed again with its frame, corner text, legend and controls hidden, the drawing fitted to the same 1600×1200 frame on one ground, so every figure sits at the same size in a gallery. The light page itself is kept too, under `live/`, so a site can let people play with the figure in a sandboxed frame. `index.json` on that branch lists every figure with its title, author, prompt, agent, model and both images, for sites that show the collection.
 
 ```
 figures/<author>/<id>/
@@ -117,6 +117,7 @@ To take a figure down, a maintainer deletes its folder in a pull request. After 
 - In Actions settings: require approval before workflows run for outside contributors, and allow GitHub Actions to create pull requests (the form's bot opens them).
 - Turn on "Automatically delete head branches" (Settings → General), so merged branches go away; submission branches are deleted by CI when their pull request closes.
 - Turn on private vulnerability reporting (Settings → Code security), which SECURITY.md relies on, and create a `report` label for the report form.
+- Optional: secrets `SITE_REVALIDATE_URL` (the site's `/api/revalidate`, e.g. `https://skills.wheresryan.sh/anatomy/api/revalidate`) and `SITE_REVALIDATE_SECRET` (the site's `REVALIDATE_SECRET`), so the gallery refreshes a minute after each merge instead of within five.
 - Optional: a secret `ANATOMY_GIST_TOKEN` (a token with no scopes is enough) lifts the 60-an-hour limit on reading gists for the submit form.
 - The form needs a `submission` label: `gh label create submission -R wheresryan22/anatomy-community --color 0E8A16 --description "Figure submitted through the form"`.
 - The **Previews** workflow can be run by hand (Actions → Previews → Run workflow) to rebuild every preview.

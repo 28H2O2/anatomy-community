@@ -48,7 +48,9 @@ body:
     id: model
     attributes:
       label: Model
-      description: Optional.
+      description: The model that drew it, like Claude Opus 5.5 or GPT-5. It shows on the gallery card with its maker's mark.
+    validations:
+      required: true
   - type: dropdown
     id: license
     attributes:

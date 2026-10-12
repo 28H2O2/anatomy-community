@@ -17,6 +17,10 @@ test("the fingerprint is stable, order-free and limited to the kit", () => {
 });
 
 test("a complete figure.json passes the schema", () => assert.deepEqual(validateFigure(good, { author: "octo-cat", id: "token-bucket" }), []));
+test("outside contributors must name the model", () => {
+  assert.ok(validateFigure(good, { requireModel: true }).some((e) => /model is required/.test(e)));
+  assert.deepEqual(validateFigure({ ...good, model: "Claude Opus 5.5" }, { requireModel: true }), []);
+});
 test("any theme works: one page, custom names, or no pages listed at all", () => {
   assert.deepEqual(validateFigure({ ...good, pages: { dark: "src/a.html" } }), []);
   assert.deepEqual(validateFigure({ ...good, pages: { sepia: "src/a-sepia.html", night: "src/a-night.html" }, preview: "sepia" }), []);
@@ -84,7 +88,7 @@ for (const [name, code] of Object.entries({ "a local named fetch": "const fetch 
 
 import { deflateSync } from "node:zlib";
 import { changedFraction } from "./png.mjs";
-import { escapeText, indexPages, latestOf, isWebp, checkPoster, PER_PAGE, ON_FRONT } from "./previews.mjs";
+import { escapeText, indexPages, latestOf, isWebp, checkPoster, publishPreviews, PER_PAGE, ON_FRONT } from "./previews.mjs";
 import { commentBody, MARKER } from "./pr-preview.mjs";
 
 function png(width, height, pixel) {
@@ -161,7 +165,7 @@ Codex
 
 ### Model
 
-_No response_
+Claude Opus 5.5
 
 ### License
 
@@ -179,7 +183,8 @@ test("the submission form is read field by field", () => {
   const f = parseIssue(issueBody);
   assert.equal(f.gist, "https://gist.github.com/Octo-Cat/0123456789abcdef0123");
   assert.equal(f.id, "token-bucket");
-  assert.equal(f.model, "");
+  assert.equal(f.model, "Claude Opus 5.5");
+  assert.ok(checkRequest({ ...f, model: "" }).problems.some((p) => /which model/.test(p)));
   const r = checkRequest(f);
   assert.deepEqual(r.problems, []);
   assert.equal(r.gistId, "0123456789abcdef0123");
@@ -212,4 +217,35 @@ test("a gist becomes a figure, and unsafe gists are refused", () => {
   assert.deepEqual(renamed.problems, []);
   assert.deepEqual([...renamed.files.keys()], ["build.mjs"]);
   refuse({ files: { ...gist.files, "tool.wasm": { content: "x" } } }, /only \.mjs/);
+});
+
+test("the previews branch gets figure-only cards and an index.json feed, and drops stale ones", async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const root = mkdtempSync(join(tmpdir(), "previews-"));
+  const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBPVP8 "), Buffer.alloc(32)]);
+  const figures = [{ ...good, author: "octo-cat", id: "token-bucket", model: "Claude Opus 5.5" }, { ...good, author: "mona", id: "dial", created: "2026-01-01" }];
+  mkdirSync(join(root, "in/octo-cat/token-bucket"), { recursive: true });
+  mkdirSync(join(root, "in/mona/dial"), { recursive: true });
+  writeFileSync(join(root, "in/octo-cat/token-bucket/preview.webp"), webp);
+  writeFileSync(join(root, "in/octo-cat/token-bucket/card.webp"), webp);
+  writeFileSync(join(root, "in/mona/dial/preview.webp"), webp);
+  writeFileSync(join(root, "in/octo-cat/token-bucket/live.html"), "<!doctype html><title>t</title>");
+  writeFileSync(join(root, "in/mona/dial/live.html"), "#!/bin/sh\nrm -rf /");
+  writeFileSync(join(root, "in/mona/dial/card.webp"), Buffer.from("<svg onload=alert(1)>"));
+  mkdirSync(join(root, "branch/cards/gone"), { recursive: true });
+  writeFileSync(join(root, "branch/cards/gone/old.webp"), webp);
+  writeFileSync(join(root, "figures.json"), JSON.stringify(figures));
+  const result = publishPreviews({ artifact: join(root, "in"), branch: join(root, "branch"), figuresFile: join(root, "figures.json"), repo: "o/r" });
+  assert.ok(existsSync(join(root, "branch/cards/octo-cat/token-bucket.webp")));
+  assert.ok(!existsSync(join(root, "branch/cards/mona/dial.webp")) && !existsSync(join(root, "branch/cards/gone/old.webp")));
+  assert.ok(result.problems.some((p) => /card\.webp is not a WebP/.test(p)));
+  const feed = JSON.parse(readFileSync(join(root, "branch/index.json"), "utf8"));
+  const bucket = feed.figures.find((f) => f.id === "token-bucket");
+  assert.equal(bucket.card, "cards/octo-cat/token-bucket.webp");
+  assert.equal(bucket.model, "Claude Opus 5.5");
+  assert.equal(feed.figures.find((f) => f.id === "dial").card, null);
+  assert.equal(bucket.live, "live/octo-cat/token-bucket.html");
+  assert.equal(feed.figures.find((f) => f.id === "dial").live, null);
 });

@@ -29,7 +29,8 @@ export function validateFigure(figure, where = {}) {
   if (!text(figure.prompt, 600)) fail("prompt is required, at most 600 characters: the request that made the figure");
   if (!KINDS.includes(figure.kind)) fail(`kind must be one of: ${KINDS.join(", ")}`);
   if (!AGENTS.includes(figure.agent)) fail(`agent must be one of: ${AGENTS.join(", ")}`);
-  if (figure.model !== undefined && !text(figure.model, 60)) fail("model, if given, is at most 60 characters");
+  if (figure.model === undefined && where.requireModel) fail('model is required: the model that drew the figure, like "Claude Opus 5.5"');
+  else if (figure.model !== undefined && !text(figure.model, 60)) fail("model is at most 60 characters");
 
   const skill = figure.skill;
   if (!skill || typeof skill !== "object" || Array.isArray(skill)) fail("skill must be an object with kit (and optionally commit)");

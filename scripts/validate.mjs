@@ -62,7 +62,7 @@ export function validateFolder(folderArg, options = {}) {
     errors.push(`figure.json: ${error.message}`);
     return result();
   }
-  const schemaOk = step("schema", [...validateFigure(figure, { author, id }), ...(options.contributor && figure.featured ? ["only maintainers set featured"] : [])]);
+  const schemaOk = step("schema", [...validateFigure(figure, { author, id, requireModel: options.contributor }), ...(options.contributor && figure.featured ? ["only maintainers set featured"] : [])]);
 
   const layout = [];
   const files = [];
@@ -195,6 +195,12 @@ export function validateFolder(folderArg, options = {}) {
     }
     const chosen = figure.preview ?? (pages.some(([name]) => name === "light") ? "light" : pages[0][0]);
     if (existsSync(join(out, `${chosen}.png`))) cpSync(join(out, `${chosen}.png`), join(out, "poster.png"));
+    const cardPage = pages.find(([name]) => name === "light")?.[1] ?? pages[0][1];
+    if (!browser.length) {
+      writeFileSync(join(out, "live.html"), builds[0].get(cardPage));
+      const made = runSandboxed({ mode, workspace: work[0], skill, out, tools: join(ROOT, "scripts"), cwd: rel, args: ["/work/.tools/card.mjs", `/work/${rel}/${cardPage}`, "--out", "/out/card.png"], timeout: 180000 });
+      if (made.code !== 0 || !existsSync(join(out, "card.png"))) notes.push(`card: not made, the gallery falls back to the poster (${tail(made.output, 1).trim()})`);
+    }
     writeFileSync(join(out, "pages.json"), JSON.stringify(Object.fromEntries(pages)));
     step("browser", browser, `screenshots, poster and built pages in ${relativeTo(ROOT, out) || out}`);
   } else if (options.noBrowser) notes.push("browser: skipped");

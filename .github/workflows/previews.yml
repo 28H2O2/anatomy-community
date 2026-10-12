@@ -53,14 +53,14 @@ jobs:
             [ -n "$id" ] || continue
             echo "::group::$id"
             if node scripts/skill.mjs "figures/$id" && node scripts/validate.mjs "figures/$id" --docker --require-docker --skip-audit --out "built/$id"; then
-              docker run --rm --platform linux/amd64 --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user "$(id -u):$(id -g)" -v "$PWD/built/$id:/out:rw" anatomy-sandbox:local cwebp -quiet -q 82 -resize 1200 0 /out/poster.png -o /out/preview.webp
+              docker run --rm --platform linux/amd64 --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user "$(id -u):$(id -g)" -v "$PWD/built/$id:/out:rw" anatomy-sandbox:local sh -c 'cwebp -quiet -q 82 -resize 1200 0 /out/poster.png -o /out/preview.webp && if [ -f /out/card.png ]; then cwebp -quiet -q 84 /out/card.png -o /out/card.webp; fi'
             else
               echo "::warning::$id did not build; its preview is left as it was"
             fi
             echo "::endgroup::"
           done < figures.txt
           node -e 'const fs=require("fs");const out=[];for(const a of fs.existsSync("figures")?fs.readdirSync("figures"):[])for(const i of fs.readdirSync(`figures/${a}`)){try{out.push(JSON.parse(fs.readFileSync(`figures/${a}/${i}/figure.json`,"utf8")))}catch{}}fs.mkdirSync("built",{recursive:true});fs.writeFileSync("built/figures.json",JSON.stringify(out))'
-          find built -type f ! -name preview.webp ! -name figures.json -delete
+          find built -type f ! -name preview.webp ! -name card.webp ! -name live.html ! -name figures.json -delete
 
       - uses: actions/upload-artifact@v4
         with:
@@ -108,3 +108,12 @@ jobs:
           git add -A
           git commit -q -m "Previews of every figure on main"
           git push -q -f origin next:previews
+
+      - name: Tell the gallery site to refresh
+        env:
+          URL: ${{ secrets.SITE_REVALIDATE_URL }}
+          SECRET: ${{ secrets.SITE_REVALIDATE_SECRET }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$SECRET" ]; then echo "No SITE_REVALIDATE_URL or SITE_REVALIDATE_SECRET: the site picks the change up on its own within 5 minutes"; exit 0; fi
+          sleep 60
+          curl -fsS -X POST -H "Authorization: Bearer $SECRET" "$URL" || echo "::warning::the site did not take the refresh; it updates on its own within 5 minutes"

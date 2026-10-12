@@ -26,6 +26,7 @@ export function checkRequest(fields) {
   const gist = (fields.gist ?? "").match(GIST);
   if (!gist) problems.push("the gist link must look like https://gist.github.com/your-name/0123456789abcdef0123");
   if (!ID.test(fields.id ?? "") || fields.id.length > 64) problems.push("the figure id must be lowercase words joined by dashes, like token-bucket-bench");
+  if (!(fields.model ?? "").trim()) problems.push("please say which model drew it, like Claude Opus 5.5");
   if (!/^- \[[xX]\] /m.test(fields.own ?? "")) problems.push("please tick that the figure is your own work");
   return { problems, gistOwner: gist?.[1], gistId: gist?.[2] };
 }

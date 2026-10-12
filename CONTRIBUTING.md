@@ -50,7 +50,7 @@ Thank you for sharing one. A figure here is a real, working object that explains
 | `prompt` | yes | the request that made the figure, at most 600 characters |
 | `kind` | yes | `SVG`, `SVG + WebGL`, `SVG + 3D` or `SVG + WebGL + 3D` |
 | `agent` | yes | `Claude Code`, `OpenCode`, `Codex` or `Other` |
-| `model` | no | the model, if you want to say |
+| `model` | yes, for new figures | the model that drew it, like `Claude Opus 5.5`; the gallery shows it with its maker's mark |
 | `skill.kit` | yes | the kit fingerprint, written by the publish script |
 | `skill.commit` | no | a skill commit with that kit, to skip the search |
 | `build` | yes | 1 to 4 commands, each like `["src/build.mjs", "--light"]` |
