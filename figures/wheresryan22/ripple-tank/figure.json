@@ -1,0 +1,31 @@
+{
+  "id": "ripple-tank",
+  "title": "Ripple tank",
+  "author": "wheresryan22",
+  "prompt": "/anatomy explain how waves interfere, as a school ripple tank, interactive",
+  "kind": "SVG + WebGL",
+  "agent": "Claude Code",
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/ripple-tank-light.html",
+    "dark": "src/ripple-tank.html"
+  },
+  "preview": "light",
+  "license": "MIT",
+  "tags": [
+    "waves",
+    "optics"
+  ],
+  "created": "2026-10-12"
+}
