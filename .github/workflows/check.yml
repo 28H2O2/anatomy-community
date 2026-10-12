@@ -106,3 +106,64 @@ jobs:
           path: built/
           if-no-files-found: ignore
           retention-days: 30
+
+  preview:
+    name: Post the preview
+    needs: figures
+    if: always() && github.event_name == 'workflow_dispatch' && inputs.pr != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      HEAD_SHA: ${{ github.sha }}
+      CONCLUSION: ${{ needs.figures.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Trusted scripts, from main
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.23.3
+
+      - name: What the check built (data only, never run)
+        uses: actions/download-artifact@v4
+        with:
+          name: built
+          path: incoming
+
+      - name: Check the posters and write the comment
+        run: node scripts/pr-preview.mjs --artifact incoming --out out --repo "$REPO" --conclusion "$CONCLUSION" --run-url "$RUN_URL"
+
+      - name: Make sure it belongs to this pull request
+        run: |
+          number="$(cat out/number.txt)"
+          head="$(gh api "repos/$REPO/pulls/$number" --jq .head.sha)"
+          if [ "$head" != "$HEAD_SHA" ]; then echo "pull request #$number is at $head, not $HEAD_SHA; skipping"; exit 1; fi
+          echo "NUMBER=$number" >> "$GITHUB_ENV"
+
+      - name: Store the previews on the pr-previews branch
+        run: |
+          git init -q branch && cd branch
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          if git fetch -q --depth 1 origin pr-previews; then git checkout -q FETCH_HEAD; fi
+          rm -rf "pr/$NUMBER"
+          if [ -d "../out/pr/$NUMBER" ]; then mkdir -p pr && cp -R "../out/pr/$NUMBER" "pr/$NUMBER"; fi
+          git checkout -q --orphan next
+          git add -A
+          git commit -q --allow-empty -m "Previews for open pull requests"
+          git push -q -f origin next:pr-previews
+
+      - name: Post or update the comment
+        run: |
+          id="$(gh api --paginate "repos/$REPO/issues/$NUMBER/comments" --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- anatomy-preview -->"))) | .id' | head -n 1)"
+          if [ -n "$id" ]; then gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@out/comment.md > /dev/null; else gh api "repos/$REPO/issues/$NUMBER/comments" -F body=@out/comment.md > /dev/null; fi
