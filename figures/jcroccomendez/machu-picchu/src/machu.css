@@ -1,0 +1,234 @@
+.iso{--mp-soil:#0d0d0c;--mp-stone:#1e1e1d;--mp-void:#070707;--mp-pool:#18191b;--mp-water:#8a8f96}
+.iso[data-theme="light"]{--mp-soil:#d9d7d1;--mp-stone:#fbfbfa;--mp-void:#9c9c98;--mp-pool:#e6e8ea;--mp-water:#6c727a}
+.mp-soil{fill:var(--mp-soil);stroke:none}
+.mp-stone{fill:var(--mp-stone);stroke:var(--anatomy-lo);stroke-width:.5;stroke-linejoin:round}
+.mp-void{fill:var(--mp-void);stroke:none}
+.mp-pool{fill:var(--mp-pool);stroke:none}
+.iso-line.mp-water{stroke:var(--mp-water)}
+.iso{--mp-wet:#3a5a78;--mp-wet-opacity:.45;--mp-rain:#9fb3c6;--mp-clay:#16120f;--mp-table:#7f9cb8}
+.iso[data-theme="light"]{--mp-wet:#8db3d9;--mp-wet-opacity:.55;--mp-rain:#6f8aa5;--mp-clay:#e2dacd;--mp-table:#4f6f8f}
+.mp-clay{fill:var(--mp-clay);stroke:none}
+.mp-wet{fill:var(--mp-wet);opacity:var(--mp-wet-opacity);mix-blend-mode:multiply;stroke:none}
+.iso:not([data-theme="light"]) .mp-wet{mix-blend-mode:screen;opacity:.28}
+.iso-line.mp-table{stroke:var(--mp-table);stroke-width:.9}
+.mp-puddle{fill:var(--mp-wet);stroke:var(--mp-table);stroke-width:.5}
+.mp-rain{fill:none;stroke:var(--mp-rain);stroke-width:.8;stroke-linecap:round;opacity:.8}
+.mp-splash{fill:none;stroke:var(--mp-rain);stroke-width:.5}
+.mp-grab{fill:none;stroke:transparent;stroke-width:16;stroke-linecap:round;pointer-events:stroke;cursor:grab}
+.iso-stage[data-dragging] .mp-grab,.iso-stage[data-dragging]{cursor:grabbing}
+.iso-stage[data-aim]{cursor:crosshair}
+/* Parts are clicked to read about them; the grab, aim and drag cursors still win. */
+.iso-stage [data-section]{cursor:pointer}
+.iso-stage[data-aim] [data-section]{cursor:crosshair}
+.iso-stage[data-dragging] [data-section]{cursor:grabbing}
+.mp-tip{position:absolute;z-index:3;margin:0;padding:4px 8px;font-family:var(--anatomy-mono);font-size:11px;letter-spacing:.04em;color:var(--anatomy-strong);background:var(--anatomy-paper);border:1px solid var(--anatomy-faint);border-radius:4px;box-shadow:var(--anatomy-lift);pointer-events:none;white-space:nowrap}
+.mp-tip[hidden]{display:none}
+.iso-stage:focus-visible{outline:1px solid var(--anatomy-mid);outline-offset:4px}
+.iso-stage:focus:not(:focus-visible){outline:none}
+.iso-svg{touch-action:none}
+.mp-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:14px;font-family:var(--anatomy-mono);font-size:10.5px;letter-spacing:.04em}
+.mp-group{display:inline-flex}
+.mp-group button{font:inherit;color:var(--anatomy-muted);background:none;border:1px solid var(--anatomy-faint);padding:5px 9px;margin-left:-1px;cursor:pointer;text-transform:uppercase;letter-spacing:.08em}
+.mp-group button:first-child{margin-left:0}
+.mp-group button[aria-pressed="true"]{color:var(--anatomy-strong);border-color:var(--anatomy-mid);position:relative}
+.mp-group button:focus-visible{outline:1px dashed var(--anatomy-mid);outline-offset:2px;position:relative;z-index:1}
+.mp-status{color:var(--anatomy-text);font-variant-numeric:tabular-nums}
+.iso-line.mp-water[data-flow]{animation-duration:var(--mp-flow,1600ms)}
+/* One frame the height of the window: the drawing on the left, the panel that explains it on the right. */
+body{background:var(--anatomy-page)}
+.iso-page{width:auto;margin:0;padding:20px}
+.mp-layout{display:grid;grid-template-columns:minmax(0,1fr) clamp(360px,31vw,470px);height:calc(100vh - 40px);height:calc(100dvh - 40px);border:1px solid var(--anatomy-faint);background:var(--anatomy-card)}
+.mp-layout{grid-template-rows:minmax(0,1fr)}
+/* The drawing shrinks to the window rather than pushing the frame (and its controls) below the fold. */
+.mp-figure{min-width:0;min-height:0;height:100%;border-right:1px solid var(--anatomy-faint)}
+.mp-figure .iso-figure{margin:0;height:100%}
+.mp-figure .iso-plate{height:100%;padding:64px 28px;border-radius:0;box-shadow:none;background:var(--anatomy-card)}
+.mp-figure .iso-plate-corners{inset:26px 30px}
+.mp-figure .iso-plate-corner{font-size:11px}
+.mp-figure .iso-plate-corner[data-corner="readout"]{display:none}
+/* The plate is a column: the drawing takes what the foot strip leaves. */
+.mp-figure .iso-plate{display:flex;flex-direction:column}
+.mp-figure .iso-stage{flex:1 1 0;min-height:0;width:100%}
+.mp-figure .iso-svg{width:100%;height:100%}
+[data-section]{transition:opacity .35s var(--anatomy-ease)}
+.iso-stage[data-spot] [data-section]:not([data-on]){opacity:.3}
+.mp-panel{display:flex;flex-direction:column;height:100%;overflow-y:auto;padding:40px 36px 24px;color:var(--anatomy-text);background:var(--anatomy-page)}
+.mp-eyebrow,.mp-label{margin:0;font-family:var(--anatomy-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--anatomy-muted)}
+.mp-title{margin:8px 0 12px;font-size:clamp(28px,2.5vw,40px);line-height:1.06;font-weight:600;letter-spacing:-.03em;color:var(--anatomy-strong)}
+.mp-lede{margin:0 0 16px;font-size:15px;line-height:1.55}
+.mp-list{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:1px}
+.mp-list button{display:flex;align-items:center;gap:14px;width:100%;padding:6px 12px;border:0;border-radius:8px;background:none;color:var(--anatomy-text);font:inherit;font-size:15px;text-align:left;cursor:pointer;transition:background .25s var(--anatomy-ease),box-shadow .25s var(--anatomy-ease)}
+.mp-list button:hover{color:var(--anatomy-strong)}
+.mp-list button[aria-pressed="true"]{background:var(--anatomy-paper);box-shadow:var(--anatomy-lift);color:var(--anatomy-strong)}
+.mp-list button:focus-visible{outline:1px solid var(--anatomy-mid);outline-offset:2px}
+.mp-num{font-family:var(--anatomy-mono);font-size:11px;color:var(--anatomy-muted);width:16px}
+.mp-about{border-top:1px solid var(--anatomy-faint);padding:16px 0 4px}
+.mp-about h2{margin:0 0 6px;font-size:14px;font-weight:600;color:var(--anatomy-strong)}
+.mp-about p{margin:0;font-size:14px;line-height:1.7}
+.mp-about p+p{margin-top:8px}
+/* What to try in the drawing, set apart from the story. */
+.mp-about .mp-try{margin-top:12px;padding-top:10px;border-top:1px dashed var(--anatomy-faint);color:var(--anatomy-strong)}
+.mp-try .mp-label{display:block;margin-bottom:2px;font-size:10px}
+.mp-weather{padding:14px 0 0}
+.mp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0;padding:14px 0;border-top:1px solid var(--anatomy-faint)}
+.mp-stats div{margin:0}
+.mp-stats dt{font-family:var(--anatomy-mono);font-size:17px;color:var(--anatomy-strong);font-variant-numeric:tabular-nums}
+.mp-stats dd{margin:3px 0 0;font-size:11.5px;color:var(--anatomy-muted)}
+/* The live readout, compact, at the right of the foot strip. */
+.mp-readout{flex:0 0 auto;width:280px}
+.mp-readout .mp-label{font-size:10px}
+.mp-big{display:flex;align-items:baseline;gap:8px;margin:4px 0 3px;color:var(--anatomy-strong)}
+.mp-big [data-big],.mp-big .mp-bignum{font-family:var(--anatomy-mono);font-size:30px;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.mp-unit{font-family:var(--anatomy-mono);font-size:12px;color:var(--anatomy-text)}
+.mp-sub{margin:0 0 7px;font-family:var(--anatomy-mono);font-size:10.5px;line-height:1.4;color:var(--anatomy-text);font-variant-numeric:tabular-nums;min-height:2.8em}
+.mp-bar{display:flex;gap:4px}
+.mp-seg{flex:1 1 0;min-width:0}
+.mp-seg i{display:block;height:3px;background:var(--anatomy-faint);overflow:hidden}
+.mp-seg b{display:block;height:100%;width:0;background:var(--anatomy-mid)}
+.mp-seg[data-on] b{background:var(--anatomy-hi)}
+.mp-seg span{display:block;margin-top:5px;font-family:var(--anatomy-mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--anatomy-muted);white-space:nowrap}
+.mp-seg[data-on] span{color:var(--anatomy-strong)}
+.mp-note{margin:auto 0 0;padding-top:16px;font-size:11px;line-height:1.6;color:var(--anatomy-muted)}
+@media (min-width:901px) and (max-height:940px){
+  .mp-panel{padding:30px 32px 18px}
+  .mp-title{font-size:clamp(26px,2.2vw,34px);margin-bottom:10px}
+  .mp-lede{display:none}
+  .mp-list{margin-bottom:10px}
+  .mp-list button{padding:4px 12px;font-size:14px}
+  .mp-about{padding-top:12px}
+  .mp-about p{font-size:13px;line-height:1.6}
+  .mp-weather{padding-top:10px}
+  .mp-group button{padding:4px 7px}
+  .mp-note{font-size:10.5px}
+}
+@media (max-width:900px){
+  .iso-page{padding:12px}
+  .mp-layout{grid-template-columns:1fr;grid-template-rows:none;height:auto}
+  .mp-figure{height:auto;border-right:0;border-bottom:1px solid var(--anatomy-faint)}
+  .mp-figure .iso-plate{height:auto;padding:56px 8px 52px}
+  .mp-figure .iso-stage{flex:none}
+  .mp-figure .iso-stage,.mp-figure .iso-svg{height:auto}
+  .mp-panel{height:auto;overflow:visible;padding:32px 20px 24px}
+}
+@media (max-width:480px){.mp-stats{grid-template-columns:repeat(2,1fr)}}
+/* Language switch, top right of the panel. */
+.mp-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mp-lang{display:inline-flex;font-family:var(--anatomy-mono);font-size:10.5px;letter-spacing:.08em}
+.mp-lang button{font:inherit;color:var(--anatomy-muted);background:none;border:1px solid var(--anatomy-faint);padding:3px 8px;margin-left:-1px;cursor:pointer}
+.mp-lang button:first-child{margin-left:0}
+.mp-lang button[aria-pressed="true"]{color:var(--anatomy-strong);border-color:var(--anatomy-mid);position:relative}
+.mp-lang button:focus-visible{outline:1px solid var(--anatomy-hi);outline-offset:1px;position:relative}
+/* Earthquakes: a mortared wall shows its mortar beds; cracks are drawn darker. */
+.iso-stage[data-mortar] [data-quake] .iso-solid:not([data-lit])>.iso-edge{stroke-width:1.5px;stroke:var(--anatomy-mid)}
+.iso-line.mp-crack{stroke-width:.9}
+/* Two figures, switched by tabs at the top left of the drawing; each brings its own panel. */
+.mp-figure{position:relative}
+.mp-figure .mp-fig{height:100%}
+.mp-panel[hidden]{display:none}
+.mp-figure .iso-plate-corner[data-corner="fig"]{display:none}
+.mp-tabs{position:absolute;top:19px;left:24px;z-index:4;display:flex;gap:4px}
+.mp-tabs button{font-family:var(--anatomy-mono);font-size:11px;letter-spacing:.04em;color:var(--anatomy-muted);background:none;border:0;border-bottom:1px solid transparent;padding:4px 6px;cursor:pointer}
+.mp-tabs button:hover{color:var(--anatomy-strong)}
+.mp-tabs button[aria-selected="true"]{color:var(--anatomy-strong);border-bottom-color:var(--anatomy-hi)}
+.mp-tabs button:focus-visible{outline:1px dashed var(--anatomy-mid);outline-offset:2px}
+/* Fig 2's panel: what the sources say, each with its source, and what is still not known. */
+.mp-facts{border-top:1px solid var(--anatomy-faint);padding:4px 0 4px}
+.mp-facts h2{margin:14px 0 8px;font-size:14px;font-weight:600;color:var(--anatomy-strong)}
+.mp-facts ol,.mp-facts ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.mp-facts li{position:relative;padding-left:16px;font-size:14px;line-height:1.6}
+.mp-facts li p{margin:0}
+.mp-known li::before{content:"";position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--anatomy-mid)}
+.mp-unknown li::before{content:"?";position:absolute;left:1px;top:0;font-family:var(--anatomy-mono);font-size:12px;color:var(--anatomy-muted)}
+.mp-src{display:block;margin-top:1px;font-family:var(--anatomy-mono);font-size:10.5px;color:var(--anatomy-muted)}
+/* The hauling rope on the spare stone. */
+.iso-line.mp-rope{stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
+/* The four controls as one table: labels in a column, each group full width with equal buttons. */
+.mp-knobs{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 14px;align-items:center}
+.mp-knobs .mp-pair{display:contents}
+.mp-knobs .mp-label{font-size:10px}
+.mp-knobs .mp-group{display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+.mp-knobs .mp-group button{padding:5px 10px;text-align:center;white-space:nowrap}
+/* The foot strip: compact controls on the left, the readout on the right. The deck takes two rows,
+   one where the plate is wide, and four where it is narrow; the widths fit the Spanish labels. */
+.mp-figure .iso-plate{position:relative;padding:52px 20px 18px;container-type:inline-size}
+.mp-figure .iso-plate-corner[data-corner="hint"]{display:none}
+.mp-foot{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px;padding:10px 10px 0}
+.mp-hint{margin:0 0 7px;font-family:var(--anatomy-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--anatomy-muted)}
+.mp-deck{font-size:11px}
+.mp-deck .mp-knobs{grid-template-columns:repeat(2,max-content max-content);gap:4px 12px}
+.mp-deck .mp-knobs .mp-group button{padding:3px 9px}
+.mp-deck .mp-knobs .mp-pair:nth-child(even) .mp-label{margin-left:10px}
+/* Spanish deck widths: one row 1025, two rows 580, four rows 372; the plate's inner width must also
+   hold the readout (280, or 240 when tight), the 20 px gap and the strip's padding. */
+@container (min-width:1345px){
+  .mp-deck .mp-knobs{grid-template-columns:repeat(4,max-content max-content)}
+  .mp-deck .mp-knobs .mp-pair:not(:first-child) .mp-label{margin-left:10px}
+}
+@container (max-width:899px){
+  .mp-deck .mp-knobs{grid-template-columns:max-content max-content}
+  .mp-deck .mp-knobs .mp-pair:nth-child(even) .mp-label{margin-left:0}
+}
+@container (max-width:691px){
+  .mp-readout{width:240px}
+}
+@media (max-width:900px){
+  .mp-figure .iso-plate{padding:56px 8px 20px}
+  .mp-figure .iso-plate-corners{inset:26px 12px}
+  .mp-figure .mp-fig{height:auto}
+  .mp-tabs{top:16px;left:6px}
+  .mp-foot{padding:14px 4px 0}
+  .mp-deck{font-size:12px;width:100%}
+  .mp-deck .mp-knobs{grid-template-columns:max-content minmax(0,1fr)}
+  .mp-deck .mp-knobs .mp-pair:nth-child(even) .mp-label{margin-left:0}
+  .mp-readout{width:100%}
+}
+/* Fig 2: controls and force comparison use the same compact instrument deck. */
+.mp-ramp-knobs{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:7px 12px}
+.mp-ramp-knobs .mp-group{display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+.mp-ramp-knobs button{white-space:nowrap;min-height:30px;padding:5px 9px}
+.mp-ramp-actions{margin-top:10px;display:flex}
+.mp-ramp-actions button{min-height:30px;padding:5px 9px;text-transform:none}
+.mp-ramp-deck{flex:1 1 300px;min-width:0;max-width:440px}
+.mp-ramp-deck .mp-hint{letter-spacing:.03em;line-height:1.6;max-width:38em}
+.mp-ramp-legend,.mp-ramp-summary,.mp-ramp-small{margin:8px 0 0;font-family:var(--anatomy-mono);font-size:10px;line-height:1.5;color:var(--anatomy-text)}
+.mp-ramp-summary{margin-top:2px;color:var(--anatomy-muted)}
+.mp-ramp-small{font-size:10px;color:var(--anatomy-text)}
+.mp-ramp-readout{width:270px}
+.mp-ramp-readout .mp-sub{min-height:0}
+.mp-ramp-status{margin:0 0 9px;font-family:var(--anatomy-mono);font-size:11px;line-height:1.4;color:var(--anatomy-strong);min-height:2.8em}
+.mp-ramp-force{font-family:var(--anatomy-mono);font-size:10px;line-height:1.4;color:var(--anatomy-text)}
+.mp-ramp-force>div{display:flex;justify-content:space-between;gap:8px;margin-top:4px}
+.mp-ramp-force b{font-weight:400;font-variant-numeric:tabular-nums}
+.mp-ramp-force i{display:block;height:3px;background:var(--anatomy-faint);margin-top:3px;overflow:hidden}
+.mp-ramp-force i>b{display:block;height:100%;background:var(--anatomy-mid)}
+.mp-ramp-force i:last-child>b{background:var(--anatomy-hi)}
+.mp-ramp-foot{align-items:flex-start}
+@container (max-width:720px){.mp-ramp-deck{max-width:none;flex-basis:100%}.mp-ramp-readout{width:100%}.mp-ramp-force{max-width:440px}}
+@media (max-width:900px){.mp-ramp-deck{max-width:none;width:100%}.mp-ramp-readout{width:100%}.mp-ramp-knobs button,.mp-ramp-actions button{min-height:36px}}
+@media (max-width:480px){
+  .mp-figure .iso-plate{padding-top:78px}
+  .mp-figure .iso-plate-corner[data-corner="title"]{top:20px}
+}
+
+/* Theme switch beside EN / ES. Both figures share the body palette and saved preference. */
+.mp-top{flex-wrap:wrap}
+.mp-tools{display:flex;align-items:center;gap:10px;margin-left:auto}
+.mp-theme-switch{display:inline-flex;align-items:center;gap:4px;padding:4px 0;border:0;background:none;color:var(--anatomy-text);cursor:pointer}
+.mp-theme-switch svg{fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.mp-theme-track{width:28px;height:16px;border:1px solid var(--anatomy-mid);border-radius:10px;padding:2px;display:block}
+.mp-theme-track i{display:block;width:10px;height:10px;border-radius:50%;background:var(--anatomy-strong);transition:transform .18s ease}
+.mp-theme-switch[aria-checked="true"] .mp-theme-track i{transform:translateX(12px)}
+.mp-theme-switch:focus-visible{outline:1px dashed var(--anatomy-hi);outline-offset:3px;border-radius:3px}
+@media(prefers-reduced-motion:reduce){.mp-theme-track i{transition:none}}
+
+/* The server-built drawing enters first; the story follows, using compositor-only properties. */
+.mp-enter .mp-figure{animation:mp-figure-enter .65s cubic-bezier(.22,1,.36,1) both}
+.mp-enter .mp-panel:not([hidden]){animation:mp-panel-enter .6s cubic-bezier(.22,1,.36,1) .48s both}
+@keyframes mp-figure-enter{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes mp-panel-enter{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+[data-ramp-stage][data-building] [data-ramp-moving]{opacity:.45}
+@media(max-width:900px){@keyframes mp-panel-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}}
+@media(prefers-reduced-motion:reduce){.mp-enter .mp-figure,.mp-enter .mp-panel:not([hidden]){animation:none}}
+
+/* Gallery card: when the card photographer hides the plate's extras, drop the layout's frame lines too. */
+.mp-layout:has(.iso-plate > [data-card-hidden]),.mp-layout:has(.iso-plate > [data-card-hidden]) .mp-figure{border-color:transparent}

@@ -1,0 +1,34 @@
+{
+  "id": "machu-picchu",
+  "title": "How Machu Picchu was built",
+  "author": "jcroccomendez",
+  "prompt": "/anatomy explain how Machu Picchu was built, interactive: an Inca terrace cutaway with stone fitting, drainage, earthquakes and hauling a block up a ramp",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "model": "Claude Opus 5.5",
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/machu-picchu-light.html",
+    "dark": "src/machu-picchu.html"
+  },
+  "preview": "light",
+  "license": "MIT",
+  "tags": [
+    "architecture",
+    "history",
+    "stone",
+    "engineering"
+  ],
+  "created": "2026-10-12"
+}
