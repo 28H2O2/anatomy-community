@@ -10,11 +10,11 @@
   },
   "build": [
     [
-      "src/build.mjs"
-    ],
-    [
       "src/build.mjs",
       "--light"
+    ],
+    [
+      "src/build.mjs"
     ]
   ],
   "pages": {

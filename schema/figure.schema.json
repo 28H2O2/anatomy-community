@@ -36,7 +36,7 @@
     "pages": {
       "type": "object",
       "additionalProperties": false,
-      "minProperties": 1,
+      "required": ["light"],
       "properties": {
         "dark": { "type": "string", "pattern": "^src/.+\\.html$" },
         "light": { "type": "string", "pattern": "^src/.+\\.html$" }

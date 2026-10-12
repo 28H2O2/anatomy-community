@@ -26,6 +26,7 @@ for (const [name, patch, pattern] of [
   ["a bad kind", { kind: "Canvas" }, /kind must be one of/],
   ["a bad date", { created: "2026-13-45" }, /created must be a date/],
   ["duplicate tags", { tags: ["a", "a"] }, /tags must be up to 8 unique/],
+  ["a dark page without a light one", { pages: { dark: "src/a.html" } }, /pages\.light is required/],
 ]) test(`the schema rejects ${name}`, () => assert.ok(validateFigure({ ...good, ...patch }, "token-bucket").some((e) => pattern.test(e))));
 
 test("the scan accepts SVG namespaces and the kit's own code", () => {

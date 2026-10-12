@@ -52,7 +52,7 @@ export function validateFigure(figure, folderName) {
   if (!pages || typeof pages !== "object" || Array.isArray(pages)) fail("pages must be an object with dark and/or light");
   else {
     for (const key of Object.keys(pages)) if (!["dark", "light"].includes(key)) fail(`unknown field "pages.${key}"`);
-    if (!pages.dark && !pages.light) fail("pages needs at least one of dark or light");
+    if (!pages.light) fail("pages.light is required: the gallery shows every figure in the light theme (a dark page is optional)");
     for (const key of ["dark", "light"]) if (pages[key] !== undefined && (!safePath(pages[key]) || !pages[key].endsWith(".html"))) fail(`pages.${key} must be an .html file under src/`);
   }
 

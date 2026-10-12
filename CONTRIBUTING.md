@@ -4,7 +4,8 @@ Thank you for sharing one. A figure here is a real, working object that explains
 
 ## What can be published
 
-- **Framework-free figures:** a build script (usually `build.mjs`) that writes standalone pages next to itself, as the skill's examples do. React and Next.js figures can't be published yet.
+- **Plain HTML figures:** a build script (usually `build.mjs`) that writes standalone pages next to itself, as the skill's examples do. This is the one format the gallery takes: it rebuilds with no installs, runs sandboxed and can be checked line by line. React and Next.js figures can't be submitted; the gallery can offer React versions of every figure later, generated from the HTML.
+- **Light first:** every figure needs its light page (`node build.mjs --light`); that is what the gallery shows. A dark page is welcome but optional.
 - **One figure per pull request,** in one folder, `figures/<id>/`.
 - **Your own work,** shared under the license you pick in `figure.json` (MIT or CC-BY-4.0).
 - **The skill's quality bar:** a recognisable object built from many small precise parts, not boxes, arrows and labels. Every number the figure shows is true.
@@ -46,7 +47,7 @@ Thank you for sharing one. A figure here is a real, working object that explains
 | `skill.kit` | yes | the kit fingerprint, written by the publish script |
 | `skill.commit` | no | a skill commit with that kit, to skip the search |
 | `build` | yes | 1 to 4 commands, each `["src/build.mjs", "--light"]`-style |
-| `pages` | yes | `dark` and/or `light`: the built pages under `src/` |
+| `pages` | yes | `light` (required) and `dark` (optional): the built pages under `src/` |
 | `audit` | no | `true` runs the skill's `--audit` in CI |
 | `license` | yes | `MIT` or `CC-BY-4.0` |
 | `tags` | no | up to 8 kebab-case words |
@@ -57,6 +58,7 @@ Thank you for sharing one. A figure here is a real, working object that explains
 
 - **Files:** `figure.json`, `poster.png`, optional `README.md`, and `src/` with `.mjs`, `.js`, `.css`, `.html`, `.json`, `.md`, `.txt` or `.svg` files. No symlinks. Pages up to 4 MB, the folder up to 12 MB, the poster up to 600 KB.
 - **Safety:** nothing may load from or talk to the network, open windows or frames, run code from strings, read cookies, or reach the page around it. Build scripts may import only the skill, files in their own folder and `node:fs`, `node:path`, `node:url`, `node:crypto`, `node:process`, and may not read environment variables.
+- **Light first:** `pages.light` must exist and really be a light page; `pages.dark`, if given, must really be dark.
 - **Reproducible:** running the build commands must recreate the committed pages exactly and write nothing else.
 - **Scope:** a contributor's pull request may only add or change files under `figures/`; it may not delete figures or touch anything else.
 

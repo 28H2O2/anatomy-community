@@ -11,7 +11,7 @@ const SKILL = join(ROOT, ".skill");
 const ready = existsSync(SEED) && existsSync(SKILL);
 
 function copy(mutate) {
-  const repo = mkdtempSync(join(tmpdir(), "anatomy-figures-"));
+  const repo = mkdtempSync(join(tmpdir(), "anatomy-community-"));
   cpSync(SEED, join(repo, "figures", "dial-indicator"), { recursive: true });
   symlinkSync(realpathSync(SKILL), join(repo, ".skill"), "dir");
   const folder = join(repo, "figures", "dial-indicator");
@@ -37,6 +37,7 @@ const faults = [
   ["an id that does not match the folder", (f) => edit(join(f, "figure.json"), (t) => t.replace('"id": "dial-indicator"', '"id": "dial-gauge"')), /schema: id "dial-gauge" must match/],
   ["a binary in src", (f) => writeFileSync(join(f, "src", "tool.wasm"), "x"), /files: src\/tool\.wasm: file type not allowed/],
   ["an unexpected top-level file", (f) => writeFileSync(join(f, "notes.zip"), "x"), /files: unexpected notes\.zip/],
+  ["a light page that is really dark", (f) => edit(join(f, "src", "dial-indicator-light.html"), (t) => t.replace('<body class="iso" data-theme="light">', '<body class="iso" data-theme="dark">')), /files: pages\.light .* is a dark page/],
   ["a poster that is not a PNG", (f) => writeFileSync(join(f, "poster.png"), "not a png"), /poster: poster\.png is not a PNG/],
   ["a build that writes an extra file", (f) => edit(join(f, "src", "build.mjs"), (t) => t + '\nwriteFileSync(join(HERE, "extra.txt"), "x");\n'), /rebuild: the build wrote a new file src\/extra\.txt/],
 ];

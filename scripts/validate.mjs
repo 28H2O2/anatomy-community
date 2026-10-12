@@ -77,6 +77,10 @@ export function validateFolder(folderArg, options = {}) {
     if (!page) continue;
     if (!existsSync(join(folder, page))) layout.push(`pages.${key} ${page} does not exist`);
     else if (lstatSync(join(folder, page)).size > LIMITS.page) layout.push(`${page} is over ${LIMITS.page >> 20} MB`);
+    else {
+      const theme = (readFileSync(join(folder, page), "utf8").match(/<body[^>]*\bdata-theme="(light|dark)"/) ?? [])[1] ?? "dark";
+      if (theme !== key) layout.push(`pages.${key} ${page} is a ${theme} page; build it with${key === "light" ? " --light" : "out --light"}`);
+    }
   }
   if (schemaOk) for (const [script] of figure.build) if (!existsSync(join(folder, script))) layout.push(`build script ${script} does not exist`);
   step("files", layout);

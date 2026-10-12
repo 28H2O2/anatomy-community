@@ -1,6 +1,6 @@
-<h1 align="center">Anatomy figures</h1>
+<h1 align="center">Anatomy community</h1>
 
-<p align="center"><b>Figures the community made with <a href="https://github.com/wheresryan22/anatomy">Anatomy</a>.</b><br>Each one explains an idea as a real, working object, and each one rebuilds from its own source.</p>
+<p align="center"><b>Figures the community made with <a href="https://github.com/wheresryan22/anatomy">Anatomy</a>.</b><br>Each one explains an idea as a real, working object, and each one rebuilds from its own source.<br>Plain HTML, light theme first.</p>
 
 ## What's in here
 
@@ -22,7 +22,7 @@ Make a figure with the Anatomy skill, then ask your agent to publish it, or run 
 
 ```sh
 node <anatomy skill>/scripts/publish.mjs path/to/your-figure \
-  --into path/to/anatomy-figures --id token-bucket-bench \
+  --into path/to/anatomy-community --id token-bucket-bench \
   --title "Token bucket air bench" --author your-github-name \
   --prompt "/anatomy explain how a token bucket rate limiter works, interactive"
 ```
@@ -35,7 +35,7 @@ Every pull request runs the same checks, on a fresh machine with no secrets:
 
 | Check | What it proves |
 |---|---|
-| Schema | `figure.json` is complete and its id matches the folder |
+| Schema | `figure.json` is complete, its id matches the folder, and it has a light page |
 | Files | only source files under `src/`, nothing over the size limits, no symlinks |
 | Poster | a real PNG of a sensible size |
 | Safety | no network calls, outside addresses, `eval`, frames, cookies or other pages; the build imports only the skill, its own files and `node:fs`, `node:path`, `node:url`, `node:crypto` |
