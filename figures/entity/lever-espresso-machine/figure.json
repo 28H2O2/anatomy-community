@@ -1,0 +1,33 @@
+{
+  "id": "lever-espresso-machine",
+  "title": "Lever espresso machine",
+  "author": "entity",
+  "prompt": "A spring-lever espresso machine: pull the lever to pre-infuse at boiler pressure, release it and the spring drives the piston to about 9 bar and lets it fall away while the shot runs into the cup.",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/espresso-light.html",
+    "dark": "src/espresso.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "kitchen",
+    "mechanical"
+  ],
+  "created": "2026-10-12"
+}
