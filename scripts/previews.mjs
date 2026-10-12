@@ -22,16 +22,44 @@ export function checkPoster(bytes) {
 
 export const escapeText = (text) => String(text).replace(/[\\`*_{}\[\]()<>#+!|~&"']/g, (c) => `&#${c.charCodeAt(0)};`).replace(/\r?\n/g, " ");
 
-export function indexMarkdown(figures, { repo }) {
-  const rows = figures
-    .slice()
-    .sort((a, b) => (b.created ?? "").localeCompare(a.created ?? "") || `${a.author}/${a.id}`.localeCompare(`${b.author}/${b.id}`))
-    .map((f) => {
-      const folder = `${f.author.toLowerCase()}/${f.id}`;
-      return `| <a href="https://github.com/${repo}/tree/main/figures/${folder}"><img src="previews/${folder}.webp" width="360" alt="${escapeText(f.title)}"></a> | **${escapeText(f.title)}**<br>by @${escapeText(f.author)}<br>${escapeText(f.kind)} · ${escapeText(f.agent)} · ${escapeText(f.created)} |`;
-    });
-  return `# Anatomy community: previews\n\nThis branch is written by CI after every merge to \`main\`. Each preview is the light page of the figure, built from its source in the locked sandbox. Do not edit it by hand.\n\n${figures.length} figure${figures.length === 1 ? "" : "s"}.\n\n| Preview | Figure |\n|---|---|\n${rows.join("\n")}\n`;
+export const PER_PAGE = 100;
+export const ON_FRONT = 48;
+export const LATEST = 6;
+export const KINDS = { "SVG": "svg", "SVG + WebGL": "webgl", "SVG + 3D": "3d", "SVG + WebGL + 3D": "webgl-3d" };
+
+const folderOf = (f) => `${f.author.toLowerCase()}/${f.id}`;
+const newestFirst = (list) => list.slice().sort((a, b) => (b.created ?? "").localeCompare(a.created ?? "") || folderOf(a).localeCompare(folderOf(b)));
+
+function table(figures, { repo, up }) {
+  const rows = figures.map((f) => `| <a href="https://github.com/${repo}/tree/main/figures/${folderOf(f)}"><img src="${up}previews/${folderOf(f)}.webp" width="360" alt="${escapeText(f.title)}"></a> | **${escapeText(f.title)}**<br>by [@${escapeText(f.author)}](${up}by-author/${f.author.toLowerCase()}.md)<br>${escapeText(f.kind)} · ${escapeText(f.agent)} · ${escapeText(f.created)} |`);
+  return `| Preview | Figure |\n|---|---|\n${rows.join("\n")}\n`;
 }
+
+const NOTE = "Written by CI after every merge to `main`: each preview is the light page of the figure, built from its source in the locked sandbox. Don't edit this branch by hand.";
+
+export function indexPages(figuresIn, { repo }) {
+  const figures = newestFirst(figuresIn);
+  const pages = new Map();
+  const total = Math.max(1, Math.ceil(figures.length / PER_PAGE));
+  const nav = (up) => `[Newest](${up}README.md) · [All figures](${up}all/1.md) · By kind: ${Object.entries(KINDS).filter(([kind]) => figures.some((f) => f.kind === kind)).map(([kind, slug]) => `[${kind}](${up}by-kind/${slug}.md)`).join(" · ") || "none yet"}`;
+  pages.set("README.md", `# Anatomy community: figures\n\n${NOTE}\n\n${figures.length} figure${figures.length === 1 ? "" : "s"} from ${new Set(figures.map((f) => f.author.toLowerCase())).size} author${new Set(figures.map((f) => f.author.toLowerCase())).size === 1 ? "" : "s"}.\n\n${nav("")}\n\n## Newest\n\n${table(figures.slice(0, ON_FRONT), { repo, up: "" })}${figures.length > ON_FRONT ? `\n[See all ${figures.length} figures →](all/1.md)\n` : ""}`);
+  for (let page = 1; page <= total; page++) {
+    const slice = figures.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+    const links = [page > 1 ? `[← Page ${page - 1}](${page - 1}.md)` : null, `Page ${page} of ${total}`, page < total ? `[Page ${page + 1} →](${page + 1}.md)` : null].filter(Boolean).join(" · ");
+    pages.set(`all/${page}.md`, `# All figures, page ${page} of ${total}\n\n${nav("../")}\n\n${links}\n\n${table(slice, { repo, up: "../" })}\n${links}\n`);
+  }
+  for (const author of new Set(figures.map((f) => f.author.toLowerCase()))) {
+    const mine = figures.filter((f) => f.author.toLowerCase() === author);
+    pages.set(`by-author/${author}.md`, `# Figures by @${escapeText(mine[0].author)}\n\n${nav("../")}\n\n${mine.length} figure${mine.length === 1 ? "" : "s"}.\n\n${table(mine, { repo, up: "../" })}`);
+  }
+  for (const [kind, slug] of Object.entries(KINDS)) {
+    const these = figures.filter((f) => f.kind === kind);
+    if (these.length) pages.set(`by-kind/${slug}.md`, `# ${kind} figures\n\n${nav("../")}\n\n${these.length} figure${these.length === 1 ? "" : "s"}.\n\n${table(these, { repo, up: "../" })}`);
+  }
+  return pages;
+}
+
+export const latestOf = (figures) => newestFirst(figures).slice(0, LATEST);
 
 function walk(dir, out = []) {
   for (const name of existsSync(dir) ? readdirSync(dir) : []) {
@@ -72,7 +100,19 @@ export function publishPreviews({ artifact, branch, figuresFile, repo }) {
     if (!match || !wanted.has(`${match[1]}/${match[2]}`)) rmSync(file);
   }
   const shown = figures.filter((f) => existsSync(join(branch, "previews", f.author.toLowerCase(), `${f.id}.webp`)));
-  writeFileSync(join(branch, "README.md"), indexMarkdown(shown, { repo }));
+  for (const dir of ["all", "by-author", "by-kind", "latest"]) rmSync(join(branch, dir), { recursive: true, force: true });
+  for (const [path, text] of indexPages(shown, { repo })) {
+    mkdirSync(join(branch, path, ".."), { recursive: true });
+    writeFileSync(join(branch, path), text);
+  }
+  const latest = latestOf(shown);
+  if (latest.length) {
+    mkdirSync(join(branch, "latest"), { recursive: true });
+    for (let slot = 0; slot < LATEST; slot++) {
+      const f = latest[slot % latest.length];
+      cpSync(join(branch, "previews", f.author.toLowerCase(), `${f.id}.webp`), join(branch, "latest", `${slot + 1}.webp`));
+    }
+  }
   return { copied, shown: shown.length, problems };
 }
 

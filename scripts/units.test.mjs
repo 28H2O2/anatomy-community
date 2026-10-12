@@ -77,7 +77,7 @@ for (const [name, code] of Object.entries({ "a local named fetch": "const fetch 
 
 import { deflateSync } from "node:zlib";
 import { changedFraction } from "./png.mjs";
-import { escapeText, indexMarkdown, isWebp, checkPoster } from "./previews.mjs";
+import { escapeText, indexPages, latestOf, isWebp, checkPoster, PER_PAGE, ON_FRONT } from "./previews.mjs";
 import { commentBody, MARKER } from "./pr-preview.mjs";
 
 function png(width, height, pixel) {
@@ -108,10 +108,24 @@ test("posters must be real PNGs of a sane size", () => {
 
 test("titles cannot inject links, images or HTML into the index or comments", () => {
   const evil = '<img src=x onerror=alert(1)> [click](https://evil) ![x](https://t)';
-  const md = indexMarkdown([{ ...good, title: evil, author: "octo-cat" }], { repo: "o/r" });
+  const md = [...indexPages([{ ...good, title: evil, author: "octo-cat" }], { repo: "o/r" }).values()].join("\n");
   assert.doesNotMatch(md, /<img src=x|\]\(https:\/\/evil|!\[x\]/);
   assert.equal(escapeText("a|b"), "a&#124;b");
   const body = commentBody({ number: 7, found: [{ author: "octo-cat", id: "token-bucket" }], conclusion: "success", runUrl: "https://github.com/o/r/actions/runs/1", repo: "o/r" });
   assert.ok(body.startsWith(MARKER));
   assert.match(body, /raw\/pr-previews\/pr\/7\/octo-cat\/token-bucket\.png/);
+});
+
+test("the index pages: newest on the front, 100 per page, by author and by kind", () => {
+  const many = Array.from({ length: 250 }, (_, i) => ({ ...good, id: `figure-${i}`, author: i % 2 ? "octo-cat" : "mona", kind: i % 3 ? "SVG" : "SVG + WebGL", created: `2026-${String(1 + (i % 12)).padStart(2, "0")}-${String(1 + (i % 28)).padStart(2, "0")}` }));
+  const pages = indexPages(many, { repo: "o/r" });
+  assert.deepEqual([...pages.keys()].filter((k) => k.startsWith("all/")), ["all/1.md", "all/2.md", "all/3.md"]);
+  assert.equal((pages.get("README.md").match(/<img /g) ?? []).length, ON_FRONT);
+  assert.equal((pages.get("all/1.md").match(/<img /g) ?? []).length, PER_PAGE);
+  assert.equal((pages.get("all/3.md").match(/<img /g) ?? []).length, 50);
+  assert.match(pages.get("all/2.md"), /\[← Page 1\]\(1\.md\) · Page 2 of 3 · \[Page 3 →\]\(3\.md\)/);
+  assert.ok(pages.has("by-author/octo-cat.md") && pages.has("by-author/mona.md") && pages.has("by-kind/svg.md") && pages.has("by-kind/webgl.md") && !pages.has("by-kind/3d.md"));
+  assert.match(pages.get("all/1.md"), /src="\.\.\/previews\//);
+  assert.equal(latestOf(many).length, 6);
+  assert.ok(latestOf(many)[0].created >= latestOf(many)[5].created);
 });
