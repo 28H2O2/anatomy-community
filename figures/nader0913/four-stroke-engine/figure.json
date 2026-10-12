@@ -1,0 +1,33 @@
+{
+  "id": "four-stroke-engine",
+  "title": "Four-stroke engine",
+  "author": "nader0913",
+  "prompt": "/anatomy explain how a four-stroke car engine works",
+  "kind": "SVG",
+  "agent": "Other",
+  "model": "claude-opus-5-5",
+  "skill": {
+    "kit": "sha256:88e307d515b00831262bb91c32be1c68e4c7d93e3f898f9cea8cfa7ee84ff425"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/engine-light.html",
+    "dark": "src/engine.html"
+  },
+  "preview": "light",
+  "license": "MIT",
+  "tags": [
+    "engine",
+    "automotive",
+    "mechanism"
+  ],
+  "created": "2026-10-12"
+}

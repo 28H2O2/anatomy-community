@@ -1,0 +1,988 @@
+[
+ {
+  "t": 0.333,
+  "type": "intake",
+  "i": 0.43,
+  "rps": 0.25
+ },
+ {
+  "t": 0.556,
+  "type": "valve",
+  "i": 0.27,
+  "rps": 0.25,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 2.889,
+  "type": "valve",
+  "i": 0.31,
+  "rps": 0.25,
+  "what": "intake closes"
+ },
+ {
+  "t": 4.333,
+  "type": "spark",
+  "i": 0.78,
+  "rps": 0.25
+ },
+ {
+  "t": 6,
+  "type": "exhaust",
+  "i": 0.55,
+  "rps": 0.25
+ },
+ {
+  "t": 8.297,
+  "type": "intake",
+  "i": 0.44,
+  "rps": 0.34
+ },
+ {
+  "t": 8.44,
+  "type": "valve",
+  "i": 0.28,
+  "rps": 0.44,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 9.126,
+  "type": "valve",
+  "i": 0.37,
+  "rps": 1.36,
+  "what": "intake closes"
+ },
+ {
+  "t": 9.356,
+  "type": "spark",
+  "i": 0.97,
+  "rps": 1.78
+ },
+ {
+  "t": 9.565,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 2.2
+ },
+ {
+  "t": 9.803,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 2.7
+ },
+ {
+  "t": 9.824,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 2.75,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 10.021,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 3.17,
+  "what": "intake closes"
+ },
+ {
+  "t": 10.131,
+  "type": "spark",
+  "i": 1,
+  "rps": 3.41
+ },
+ {
+  "t": 10.249,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 3.66
+ },
+ {
+  "t": 10.401,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 3.98
+ },
+ {
+  "t": 10.415,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 4.01,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 10.556,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 4.29,
+  "what": "intake closes"
+ },
+ {
+  "t": 10.638,
+  "type": "spark",
+  "i": 1,
+  "rps": 4.45
+ },
+ {
+  "t": 10.73,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 4.63
+ },
+ {
+  "t": 10.853,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 4.85
+ },
+ {
+  "t": 10.865,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 4.87,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 10.982,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 5.07,
+  "what": "intake closes"
+ },
+ {
+  "t": 11.052,
+  "type": "spark",
+  "i": 1,
+  "rps": 5.18
+ },
+ {
+  "t": 11.132,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 5.3
+ },
+ {
+  "t": 11.24,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 5.46
+ },
+ {
+  "t": 11.25,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 5.47,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 11.356,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 5.6,
+  "what": "intake closes"
+ },
+ {
+  "t": 11.42,
+  "type": "spark",
+  "i": 1,
+  "rps": 5.67
+ },
+ {
+  "t": 11.493,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 5.75
+ },
+ {
+  "t": 11.593,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 5.83
+ },
+ {
+  "t": 11.603,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 5.84,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 11.702,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 5.91,
+  "what": "intake closes"
+ },
+ {
+  "t": 11.763,
+  "type": "spark",
+  "i": 1,
+  "rps": 5.94
+ },
+ {
+  "t": 11.833,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 5.97
+ },
+ {
+  "t": 11.931,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 5.99
+ },
+ {
+  "t": 11.94,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 12.037,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 12.097,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 12.167,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 12.264,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 12.273,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 12.37,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 12.431,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 12.5,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 12.597,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 12.606,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 12.704,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 12.764,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 12.833,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 12.931,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 12.94,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 13.037,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 13.097,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 13.167,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 13.264,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 13.273,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 13.37,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 13.431,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 13.5,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 13.597,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 13.606,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 13.704,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 13.764,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 13.833,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 13.931,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 13.94,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 14.037,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 14.097,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 14.167,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 14.264,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 14.273,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 14.37,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 14.431,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 14.5,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 14.597,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 14.606,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 14.704,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 14.764,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 14.833,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 14.931,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 14.94,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 15.037,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 15.097,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 15.167,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 15.264,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 15.273,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 15.37,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 15.431,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 15.5,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 15.597,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 15.606,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 15.704,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 15.764,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 15.833,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 15.931,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 15.94,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 16.037,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 16.097,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 16.167,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 16.264,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 16.273,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 16.37,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 16.431,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 16.5,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 16.597,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 16.606,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 16.704,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 16.764,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 16.833,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 16.931,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 16.94,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 17.037,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 6,
+  "what": "intake closes"
+ },
+ {
+  "t": 17.097,
+  "type": "spark",
+  "i": 1,
+  "rps": 6
+ },
+ {
+  "t": 17.167,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 6
+ },
+ {
+  "t": 17.264,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 6
+ },
+ {
+  "t": 17.273,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 6,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 17.371,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 5.98,
+  "what": "intake closes"
+ },
+ {
+  "t": 17.431,
+  "type": "spark",
+  "i": 1,
+  "rps": 5.96
+ },
+ {
+  "t": 17.501,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 5.93
+ },
+ {
+  "t": 17.6,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 5.89
+ },
+ {
+  "t": 17.609,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 5.88,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 17.709,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 5.82,
+  "what": "intake closes"
+ },
+ {
+  "t": 17.771,
+  "type": "spark",
+  "i": 1,
+  "rps": 5.78
+ },
+ {
+  "t": 17.844,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 5.72
+ },
+ {
+  "t": 17.947,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 5.63
+ },
+ {
+  "t": 17.956,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 5.62,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 18.061,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 5.51,
+  "what": "intake closes"
+ },
+ {
+  "t": 18.127,
+  "type": "spark",
+  "i": 1,
+  "rps": 5.44
+ },
+ {
+  "t": 18.204,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 5.35
+ },
+ {
+  "t": 18.315,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 5.21
+ },
+ {
+  "t": 18.325,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 5.2,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 18.439,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 5.05,
+  "what": "intake closes"
+ },
+ {
+  "t": 18.512,
+  "type": "spark",
+  "i": 1,
+  "rps": 4.95
+ },
+ {
+  "t": 18.597,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 4.82
+ },
+ {
+  "t": 18.72,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 4.64
+ },
+ {
+  "t": 18.732,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 4.62,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 18.861,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 4.41,
+  "what": "intake closes"
+ },
+ {
+  "t": 18.945,
+  "type": "spark",
+  "i": 1,
+  "rps": 4.27
+ },
+ {
+  "t": 19.044,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 4.11
+ },
+ {
+  "t": 19.191,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 3.85
+ },
+ {
+  "t": 19.205,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 3.83,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 19.363,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 3.55,
+  "what": "intake closes"
+ },
+ {
+  "t": 19.468,
+  "type": "spark",
+  "i": 1,
+  "rps": 3.36
+ },
+ {
+  "t": 19.596,
+  "type": "exhaust",
+  "i": 0.7,
+  "rps": 3.13
+ },
+ {
+  "t": 19.793,
+  "type": "intake",
+  "i": 0.55,
+  "rps": 2.78
+ },
+ {
+  "t": 19.814,
+  "type": "valve",
+  "i": 0.35,
+  "rps": 2.74,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 20.043,
+  "type": "valve",
+  "i": 0.4,
+  "rps": 2.34,
+  "what": "intake closes"
+ },
+ {
+  "t": 20.208,
+  "type": "spark",
+  "i": 1,
+  "rps": 2.06
+ },
+ {
+  "t": 20.43,
+  "type": "exhaust",
+  "i": 0.67,
+  "rps": 1.69
+ },
+ {
+  "t": 20.855,
+  "type": "intake",
+  "i": 0.49,
+  "rps": 1.08
+ },
+ {
+  "t": 20.908,
+  "type": "valve",
+  "i": 0.31,
+  "rps": 1.01,
+  "what": "exhaust closes"
+ },
+ {
+  "t": 22.089,
+  "type": "valve",
+  "i": 0.31,
+  "rps": 0.25,
+  "what": "intake closes"
+ },
+ {
+  "t": 23.533,
+  "type": "spark",
+  "i": 0.78,
+  "rps": 0.25
+ }
+]
