@@ -1,0 +1,30 @@
+{
+  "id": "dial-indicator",
+  "title": "Dial indicator",
+  "author": "wheresryan22",
+  "prompt": "/anatomy explain how a dial indicator measures runout, interactive",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081"
+  },
+  "build": [
+    [
+      "src/build.mjs"
+    ],
+    [
+      "src/build.mjs",
+      "--light"
+    ]
+  ],
+  "pages": {
+    "dark": "src/dial-indicator.html",
+    "light": "src/dial-indicator-light.html"
+  },
+  "license": "MIT",
+  "tags": [
+    "measurement",
+    "gauge"
+  ],
+  "created": "2026-10-12"
+}

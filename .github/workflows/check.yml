@@ -1,0 +1,101 @@
+name: Check figures
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tools:
+    name: Repository tools
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Unit tests
+        run: node --test scripts/units.test.mjs
+
+  figures:
+    name: Check figures
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Scope
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          ASSOCIATION: ${{ github.event.pull_request.author_association }}
+        run: node scripts/scope.mjs --base "$BASE" --association "$ASSOCIATION"
+
+      - name: Validator self-test
+        run: |
+          node scripts/skill.mjs figures/dial-indicator
+          node --test scripts/validate.test.mjs
+
+      - name: Figures to check
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            node scripts/changed.mjs --base "$BASE" > figures.txt
+          else
+            node scripts/changed.mjs --all > figures.txt
+          fi
+          echo "Figures: $(tr '\n' ' ' < figures.txt)"
+
+      - name: Check each figure
+        env:
+          ASSOCIATION: ${{ github.event.pull_request.author_association }}
+        run: |
+          contributor=""
+          case "$ASSOCIATION" in OWNER|MEMBER|COLLABORATOR|"") ;; *) contributor="--contributor" ;; esac
+          status=0
+          while read -r id; do
+            [ -n "$id" ] || continue
+            echo "::group::$id"
+            if node scripts/skill.mjs "figures/$id"; then
+              node scripts/validate.mjs "figures/$id" $contributor --shots shots || status=1
+            else
+              status=1
+            fi
+            echo "::endgroup::"
+          done < figures.txt
+          exit $status
+
+      - name: Rebuilt figures leave no changes
+        run: |
+          git status --short -- figures
+          test -z "$(git status --porcelain -- figures)"
+
+      - name: Screenshots for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots/
+          if-no-files-found: ignore
+          retention-days: 14

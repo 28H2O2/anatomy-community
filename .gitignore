@@ -1,0 +1,5 @@
+.skill
+.skill-cache/
+shots/
+node_modules/
+.DS_Store
