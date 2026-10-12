@@ -145,6 +145,7 @@ jobs:
       - name: Make sure it belongs to this pull request
         run: |
           number="$(cat out/number.txt)"
+          if [ "$(gh api "repos/$REPO/pulls/$number" --jq .state)" != "open" ]; then echo "pull request #$number is closed; nothing to post"; exit 1; fi
           head="$(gh api "repos/$REPO/pulls/$number" --jq .head.sha)"
           if [ "$head" != "$HEAD_SHA" ]; then echo "pull request #$number is at $head, not $HEAD_SHA; skipping"; exit 1; fi
           echo "NUMBER=$number" >> "$GITHUB_ENV"
