@@ -13,7 +13,7 @@ Thank you for sharing one. A figure here is a real, working object that explains
 
 ## Steps
 
-1. **Clone** this repository (`gh repo clone wheresryan22/anatomy-community`). You don't need to fork it yourself: `--submit` makes a fork for you if you need one. No terminal? Use the [Submit a figure](https://github.com/wheresryan22/anatomy-community/issues/new?template=submit-figure.yml) form with a Gist instead.
+1. **Clone** this repository (`gh repo clone wheresryan22/anatomy-community -- --single-branch`, which leaves out the previews branch and its images). You don't need to fork it yourself: `--submit` makes a fork for you if you need one. No terminal? Use the [Submit a figure](https://github.com/wheresryan22/anatomy-community/issues/new?template=submit-figure.yml) form with a Gist instead.
 2. **Build your figure** with the skill and check it looks right.
 3. **Publish it into your clone.** Ask your agent ("publish this figure to the Anatomy community gallery"), or run:
 

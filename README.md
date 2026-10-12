@@ -17,7 +17,7 @@
 
 A shared collection of figures made with the Anatomy skill, in any theme and colours. Each figure is stored as its **source**: the `build.mjs` the skill wrote, plus a `figure.json` that says who made it, with what prompt and with which skill version. There are no built pages or images in `main`.
 
-Because every Anatomy figure rebuilds byte for byte from its source, CI rebuilds each one on every check, in a locked sandbox, and makes the pages and the preview image itself. The previews live on the [`previews`](https://github.com/wheresryan22/anatomy-community/tree/previews) branch, which CI rewrites after every merge. Next to each preview, CI also makes a **card**: the light page photographed again with its frame, corner text, legend and controls hidden, the drawing fitted to the same 1600×1200 frame on one ground, so every figure sits at the same size in a gallery. The light page itself is kept too, under `live/`, so a site can let people play with the figure in a sandboxed frame. `index.json` on that branch lists every figure with its title, author, prompt, agent, model and both images, for sites that show the collection.
+Because every Anatomy figure rebuilds byte for byte from its source, CI rebuilds each one on every check, in a locked sandbox, and makes the pages and the preview image itself. The previews live on the [`previews`](https://github.com/wheresryan22/anatomy-community/tree/previews) branch, which CI rewrites after every merge. Next to each preview, CI also makes a **card**: the light page photographed again with its frame, corner text, legend and controls hidden, the drawing fitted to the same 1600×1200 frame on one ground, so every figure sits at the same size in a gallery. The light page itself is kept too, under `live/`, so a site can let people play with the figure in a sandboxed frame. For sites that show the collection, that branch also has a small `index.json` (counts, kinds, popular tags), `feed/page-N.json` (48 figures a page, newest first), `feed/search.json` (every figure, short form) and `feed/figures/<author>/<id>.json` (one figure in full), so no file grows past a couple of megabytes however many figures there are. `BUILT_FROM` records the last `main` commit it was built from, so each run builds everything merged since, and a full rebuild runs in batches of 30 that start each other.
 
 ```
 figures/<author>/<id>/
@@ -38,7 +38,7 @@ There are two ways. Neither needs you to fork or use git by hand.
 2. **Ask your agent:** *"publish this figure to the Anatomy community gallery"*. It asks for a title, a short id and your GitHub name, then shows exactly what it will send.
 3. **Say yes.** It opens the pull request for you and gives you the link. If you don't have push access, it makes a fork for you first.
 
-Or run the same thing yourself, from a clone of this repository (`gh repo clone wheresryan22/anatomy-community`):
+Or run the same thing yourself, from a clone of this repository (`gh repo clone wheresryan22/anatomy-community -- --single-branch`, which leaves out the previews branch and its images):
 
 ```sh
 node <anatomy skill folder>/scripts/publish.mjs <your figure folder> --into . \

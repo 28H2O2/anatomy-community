@@ -62,28 +62,63 @@ export function indexPages(figuresIn, { repo }) {
   return pages;
 }
 
-export function feedOf(figures, { branch }) {
-  return {
-    updated: new Date().toISOString(),
-    figures: newestFirst(figures).map((f) => ({
-      id: f.id,
-      author: f.author,
-      title: f.title,
+export const FEED_PAGE = 48;
+export const SNIPPET = 160;
+export const FEED_TAGS = 50;
+
+const kindFlags = (kind) => ({ svg: kind === "SVG", webgl: kind.includes("WebGL"), "3d": kind.includes("3D") });
+
+export function feedFiles(figuresIn, { branch, updated = new Date().toISOString() }) {
+  const figures = newestFirst(figuresIn);
+  const has = (dir, f, ext) => existsSync(join(branch, dir, f.author.toLowerCase(), `${f.id}.${ext}`));
+  const card = (f) => ({
+    id: f.id,
+    author: f.author,
+    title: f.title,
+    snippet: f.prompt.length > SNIPPET ? `${f.prompt.slice(0, SNIPPET - 1).trimEnd()}…` : f.prompt,
+    kind: f.kind,
+    agent: f.agent,
+    model: f.model ?? null,
+    minutes: f.minutes ?? null,
+    tokens: f.tokens ?? null,
+    tags: f.tags ?? [],
+    created: f.created,
+    image: has("cards", f, "webp") ? `cards/${folderOf(f)}.webp` : `previews/${folderOf(f)}.webp`,
+    framed: !has("cards", f, "webp"),
+  });
+  const cards = figures.map(card);
+  const pages = Math.max(1, Math.ceil(cards.length / FEED_PAGE));
+  const tags = new Map();
+  for (const f of figures) for (const tag of f.tags ?? []) tags.set(tag, (tags.get(tag) ?? 0) + 1);
+  const kinds = { svg: 0, webgl: 0, "3d": 0 };
+  for (const f of figures) for (const [k, on] of Object.entries(kindFlags(f.kind))) if (on) kinds[k]++;
+  const files = new Map();
+  files.set("index.json", {
+    version: 2,
+    updated,
+    total: cards.length,
+    perPage: FEED_PAGE,
+    pages,
+    authors: new Set(figures.map((f) => f.author.toLowerCase())).size,
+    models: new Set(figures.map((f) => f.model).filter(Boolean)).size,
+    kinds,
+    tags: [...tags].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, FEED_TAGS),
+  });
+  for (let page = 1; page <= pages; page++) files.set(`feed/page-${page}.json`, { page, pages, figures: cards.slice((page - 1) * FEED_PAGE, page * FEED_PAGE) });
+  files.set("feed/search.json", { figures: cards });
+  figures.forEach((f, index) => {
+    const near = (g) => ({ id: g.id, author: g.author, title: g.title });
+    files.set(`feed/figures/${folderOf(f)}.json`, {
+      ...cards[index],
       prompt: f.prompt,
-      kind: f.kind,
-      agent: f.agent,
-      model: f.model ?? null,
-      minutes: f.minutes ?? null,
-      tokens: f.tokens ?? null,
-      tags: f.tags ?? [],
       license: f.license,
-      created: f.created,
-      preview: `previews/${folderOf(f)}.webp`,
-      card: existsSync(join(branch, "cards", f.author.toLowerCase(), `${f.id}.webp`)) ? `cards/${folderOf(f)}.webp` : null,
-      live: existsSync(join(branch, "live", f.author.toLowerCase(), `${f.id}.html`)) ? `live/${folderOf(f)}.html` : null,
+      live: has("live", f, "html") ? `live/${folderOf(f)}.html` : null,
       source: `figures/${folderOf(f)}`,
-    })),
-  };
+      previous: figures.length > 1 ? near(figures[(index - 1 + figures.length) % figures.length]) : null,
+      next: figures.length > 1 ? near(figures[(index + 1) % figures.length]) : null,
+    });
+  });
+  return files;
 }
 
 export const latestOf = (figures) => newestFirst(figures).slice(0, LATEST);
@@ -137,7 +172,11 @@ export function publishPreviews({ artifact, branch, figuresFile, repo }) {
     mkdirSync(join(branch, path, ".."), { recursive: true });
     writeFileSync(join(branch, path), text);
   }
-  writeFileSync(join(branch, "index.json"), JSON.stringify(feedOf(shown, { branch }), null, 1) + "\n");
+  rmSync(join(branch, "feed"), { recursive: true, force: true });
+  for (const [path, data] of feedFiles(shown, { branch })) {
+    mkdirSync(join(branch, path, ".."), { recursive: true });
+    writeFileSync(join(branch, path), JSON.stringify(data) + "\n");
+  }
   const latest = latestOf(shown);
   if (latest.length) {
     mkdirSync(join(branch, "latest"), { recursive: true });
