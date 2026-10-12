@@ -1,0 +1,37 @@
+{
+  "id": "automatic-watch",
+  "title": "Automatic watch",
+  "author": "srirangam-r",
+  "prompt": "/anatomy explain how an automatic self winding mechanical watch works, interactive",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "minutes": 83,
+  "tokens": 718084,
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/automatic-watch-light.html",
+    "dark": "src/automatic-watch.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "watch",
+    "clockwork",
+    "gears",
+    "spring"
+  ],
+  "created": "2026-10-12"
+}
