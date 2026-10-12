@@ -2,7 +2,7 @@ name: Submit
 
 on:
   issues:
-    types: [opened, edited]
+    types: [opened, edited, closed]
 
 permissions:
   contents: write
@@ -17,7 +17,7 @@ concurrency:
 jobs:
   submit:
     name: Turn the submission into a pull request
-    if: contains(github.event.issue.labels.*.name, 'submission') && github.event.issue.state == 'open'
+    if: contains(github.event.issue.labels.*.name, 'submission') && github.event.action != 'closed' && github.event.issue.state == 'open'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -98,3 +98,36 @@ jobs:
         run: |
           { echo "Thanks @$AUTHOR, but the submission can't go ahead yet:"; echo; cat problems.md; echo; echo "Edit this issue to try again."; } > reply.md
           gh issue comment "$NUMBER" -R "$REPO" --body-file reply.md
+
+  withdraw:
+    name: Close the pull request of a closed submission
+    if: contains(github.event.issue.labels.*.name, 'submission') && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      NUMBER: ${{ github.event.issue.number }}
+    steps:
+      - name: Close it and delete its branch
+        run: |
+          pr="$(gh pr list -R "$REPO" --head "submission/$NUMBER" --state open --json number --jq '.[0].number')"
+          if [ -z "$pr" ]; then echo "no open pull request for submission #$NUMBER"; exit 0; fi
+          gh pr close "$pr" -R "$REPO" --delete-branch --comment "Closed because submission #$NUMBER was closed."
+          echo "PR=$pr" >> "$GITHUB_ENV"
+
+      - name: Drop its previews from the pr-previews branch
+        if: env.PR != ''
+        run: |
+          git init -q branch && cd branch
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          git fetch -q --depth 1 origin pr-previews || exit 0
+          git checkout -q FETCH_HEAD
+          [ -d "pr/$PR" ] || exit 0
+          rm -rf "pr/$PR"
+          git checkout -q --orphan next
+          git add -A
+          git commit -q --allow-empty -m "Previews for open pull requests"
+          git push -q -f origin next:pr-previews
