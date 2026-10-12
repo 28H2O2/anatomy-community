@@ -47,8 +47,9 @@ jobs:
       - name: Fetch the gist (as data)
         env:
           GIST: ${{ steps.request.outputs.gist }}
+          GIST_TOKEN: ${{ secrets.ANATOMY_GIST_TOKEN }}
         run: |
-          curl -fsSL --retry 3 --max-time 30 -H "Accept: application/vnd.github+json" "https://api.github.com/gists/$GIST" > gist.json || { echo "- the gist could not be fetched; check that the link works (public or secret gists both work)" > problems.md; exit 1; }
+          curl -fsSL --retry 3 --max-time 30 -H "Accept: application/vnd.github+json" ${GIST_TOKEN:+-H "Authorization: Bearer $GIST_TOKEN"} "https://api.github.com/gists/$GIST" > gist.json || { echo "- the gist could not be fetched; check that the link works (public or secret gists both work)" > problems.md; exit 1; }
 
       - name: Build the figure folder
         run: |

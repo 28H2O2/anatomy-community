@@ -60,7 +60,7 @@ function linkLocal(path, kit) {
   const found = fingerprintOfSkill(local);
   if (found !== kit) throw new Error(`the skill at ${local} has kit ${found}, not ${kit}`);
   if (existsSync(SKILL) || (() => { try { return lstatSync(SKILL).isSymbolicLink(); } catch { return false; } })()) rmSync(SKILL, { recursive: true, force: true });
-  symlinkSync(local, SKILL, "dir");
+  symlinkSync(local, SKILL, process.platform === "win32" ? "junction" : "dir");
   return local;
 }
 

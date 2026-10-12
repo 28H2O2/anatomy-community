@@ -117,7 +117,7 @@ export function validateFolder(folderArg, options = {}) {
     const workspace = realpathSync(mkdtempSync(join(tmpdir(), "anatomy-check-")));
     work.push(workspace);
     cpSync(folder, join(workspace, rel), { recursive: true });
-    if (mode !== "docker") symlinkSync(skill, join(workspace, ".skill"), "dir");
+    if (mode !== "docker") symlinkSync(skill, join(workspace, ".skill"), process.platform === "win32" ? "junction" : "dir");
     const before = new Map(listFiles(join(workspace, rel, "src")).map((f) => [f.path, readFileSync(join(workspace, rel, "src", f.path))]));
     for (const command of figure.build) {
       const run = runSandboxed({ mode, workspace, skill, cwd: rel, args: command, timeout: (options.buildTimeout ?? 600) * 1000, locked: [`${rel}/src`] });

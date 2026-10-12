@@ -1,5 +1,7 @@
 # Contributing a figure
 
+By contributing you agree to follow the [code of conduct](CODE_OF_CONDUCT.md).
+
 Thank you for sharing one. A figure here is a real, working object that explains an idea, made with the [Anatomy](https://github.com/wheresryan22/anatomy) skill in Claude Code, OpenCode or Codex.
 
 ## What can be published

@@ -103,11 +103,21 @@ NODE_PATH=/tmp/anatomy-tools/node_modules node --test scripts/units.test.mjs
 
 Your own work, in your own folder, under MIT or CC-BY-4.0. A real object built from many small precise parts, not boxes and arrows, and every number it shows is true. Plain HTML, any theme. Deterministic, still under reduced motion, and nothing that talks to the outside. [CONTRIBUTING.md](CONTRIBUTING.md) has the full rules and every field of `figure.json`.
 
+## Reporting and takedowns
+
+- A figure that's copied, unsafe, abusive or broken: [Report a figure](https://github.com/wheresryan22/anatomy-community/issues/new?template=report-figure.yml).
+- A security problem in the checks: privately, as [SECURITY.md](SECURITY.md) explains.
+- Everyone here follows the [code of conduct](CODE_OF_CONDUCT.md).
+
+To take a figure down, a maintainer deletes its folder in a pull request. After the merge, the Previews workflow drops its preview and its place in the index on its own.
+
 ## For maintainers
 
 - Protect `main`: require a pull request with a review, and require the **Scope** and **Check figures** checks.
 - In Actions settings: require approval before workflows run for outside contributors, and allow GitHub Actions to create pull requests (the form's bot opens them).
 - Turn on "Automatically delete head branches" (Settings → General), so merged branches go away; submission branches are deleted by CI when their pull request closes.
+- Turn on private vulnerability reporting (Settings → Code security), which SECURITY.md relies on, and create a `report` label for the report form.
+- Optional: a secret `ANATOMY_GIST_TOKEN` (a token with no scopes is enough) lifts the 60-an-hour limit on reading gists for the submit form.
 - The form needs a `submission` label: `gh label create submission -R wheresryan22/anatomy-community --color 0E8A16 --description "Figure submitted through the form"`.
 - The **Previews** workflow can be run by hand (Actions → Previews → Run workflow) to rebuild every preview.
 
