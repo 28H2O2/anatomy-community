@@ -1,0 +1,31 @@
+{
+  "id": "raptor-engine",
+  "title": "Raptor engine on the test stand",
+  "author": "wheresryan22",
+  "prompt": "/anatomy explain how a full-flow staged combustion rocket engine works, as a Raptor on a test stand, interactive",
+  "kind": "SVG + WebGL",
+  "agent": "Claude Code",
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "dark": "src/raptor-engine.html",
+    "light": "src/raptor-engine-light.html"
+  },
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "rocket",
+    "engine"
+  ],
+  "created": "2026-10-12"
+}
