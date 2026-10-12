@@ -1,0 +1,33 @@
+{
+  "id": "gumball-machine",
+  "title": "Gumball machine",
+  "author": "entity",
+  "prompt": "A coin-op gumball machine: put in a quarter and turn the crank, the coin wheel lets exactly one gumball fall, and it rolls down the chute against the flap at the speed a rolling ball really reaches.",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/gumball-light.html",
+    "dark": "src/gumball.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "retro",
+    "mechanical"
+  ],
+  "created": "2026-10-12"
+}
