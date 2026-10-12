@@ -5,14 +5,14 @@ Thank you for sharing one. A figure here is a real, working object that explains
 ## What can be published
 
 - **Plain HTML figures:** a build script (usually `build.mjs`) that writes standalone pages next to itself, as the skill's examples do. It is the one format the gallery takes: it rebuilds with no installs, runs sandboxed and can be checked line by line. React and Next.js figures can't be submitted; the gallery can offer React versions of every figure later, generated from the HTML.
-- **Light first:** every figure needs its light page (`node build.mjs --light`), which is what the gallery shows. A dark page is welcome but optional.
+- **Any theme:** one page or several, light, dark or your own colours. Name the one to show as the preview with `preview`, or the gallery uses the light page, else the first.
 - **Your own work,** in your own folder, `figures/<your-github-name>/<id>/`, shared under the license you pick (MIT or CC-BY-4.0).
 - **The skill's quality bar:** a recognisable object built from many small precise parts, not boxes, arrows and labels. Every number the figure shows is true.
 
 ## Steps
 
-1. **Fork and clone** this repository.
-2. **Build your figure** with the skill and check it looks right, light page included.
+1. **Clone** this repository (`gh repo clone wheresryan22/anatomy-community`). You don't need to fork it yourself: `--submit` makes a fork for you if you need one. No terminal? Use the [Submit a figure](https://github.com/wheresryan22/anatomy-community/issues/new?template=submit-figure.yml) form with a Gist instead.
+2. **Build your figure** with the skill and check it looks right.
 3. **Publish it into your clone.** Ask your agent ("publish this figure to the Anatomy community gallery"), or run:
 
    ```sh
@@ -36,7 +36,7 @@ Thank you for sharing one. A figure here is a real, working object that explains
    ```
 
    It has to end with `passed`. Without Docker it still runs, but the build isn't network-isolated, and the code analysis needs `acorn` on `NODE_PATH`; CI runs everything. The built pages, the poster and screenshots go to `shots/<author>-<id>/`.
-5. **Open a pull request.** The publish script prints the commands. After the checks run, a comment on your pull request shows the preview CI made of your figure.
+5. **Send it:** run the publish command again with `--submit` (it asks first; `--dry-run` only shows the plan). Or open the pull request yourself with the commands it printed. After the checks run, a comment on your pull request shows the preview CI made of your figure.
 
 ## figure.json
 
@@ -52,7 +52,8 @@ Thank you for sharing one. A figure here is a real, working object that explains
 | `skill.kit` | yes | the kit fingerprint, written by the publish script |
 | `skill.commit` | no | a skill commit with that kit, to skip the search |
 | `build` | yes | 1 to 4 commands, each like `["src/build.mjs", "--light"]` |
-| `pages` | yes | `light` (required) and `dark` (optional): the pages the build writes under `src/` |
+| `pages` | no | the pages the build writes under `src/`, by name, like `{ "light": "src/a-light.html", "night": "src/a-night.html" }`; if left out, CI takes whatever `.html` pages the build writes |
+| `preview` | no | the name of the page to use as the preview |
 | `audit` | no | `true` runs the skill's `--audit` in CI |
 | `license` | yes | `MIT` or `CC-BY-4.0` |
 | `tags` | no | up to 8 kebab-case words |

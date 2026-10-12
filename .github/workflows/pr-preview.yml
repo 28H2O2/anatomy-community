@@ -19,7 +19,7 @@ concurrency:
 jobs:
   preview:
     name: Post the preview
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request'
+    if: github.event_name == 'workflow_run' && (github.event.workflow_run.event == 'pull_request' || github.event.workflow_run.event == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:

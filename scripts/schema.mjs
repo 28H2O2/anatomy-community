@@ -9,7 +9,8 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TAG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SOURCE_PATH = /^src\/(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/;
 
-const KEYS = ["id", "title", "author", "prompt", "kind", "agent", "model", "skill", "build", "pages", "audit", "license", "tags", "created", "featured"];
+const KEYS = ["id", "title", "author", "prompt", "kind", "agent", "model", "skill", "build", "pages", "preview", "audit", "license", "tags", "created", "featured"];
+const PAGE_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 const text = (value, max) => typeof value === "string" && value.trim() === value && value.length > 0 && value.length <= max;
 const safePath = (value) => typeof value === "string" && SOURCE_PATH.test(value) && !value.split("/").includes("..");
@@ -50,13 +51,14 @@ export function validateFigure(figure, where = {}) {
   });
 
   const pages = figure.pages;
-  if (!pages || typeof pages !== "object" || Array.isArray(pages)) fail("pages must be an object with dark and/or light");
-  else {
-    for (const key of Object.keys(pages)) if (!["dark", "light"].includes(key)) fail(`unknown field "pages.${key}"`);
-    if (!pages.light) fail("pages.light is required: the gallery shows every figure in the light theme (a dark page is optional)");
-    for (const key of ["dark", "light"]) if (pages[key] !== undefined && (!safePath(pages[key]) || !pages[key].endsWith(".html"))) fail(`pages.${key} must be an .html file under src/`);
+  if (pages !== undefined) {
+    if (!pages || typeof pages !== "object" || Array.isArray(pages) || !Object.keys(pages).length || Object.keys(pages).length > 6) fail("pages, if given, names 1 to 6 pages, like { \"light\": \"src/a-light.html\", \"dark\": \"src/a.html\" }");
+    else for (const [name, page] of Object.entries(pages)) {
+      if (!PAGE_NAME.test(name) || name.length > 24) fail(`page name "${name}" must be a short kebab-case word, like light, dark or night`);
+      if (!safePath(page) || !page.endsWith(".html")) fail(`pages.${name} must be an .html file under src/`);
+    }
   }
-
+  if (figure.preview !== undefined && (typeof figure.preview !== "string" || !(pages && Object.hasOwn(pages, figure.preview)))) fail("preview must be the name of one of the pages");
   if (figure.audit !== undefined && typeof figure.audit !== "boolean") fail("audit must be true or false");
   if (!LICENSES.includes(figure.license)) fail(`license must be one of: ${LICENSES.join(", ")}`);
   if (figure.tags !== undefined && (!Array.isArray(figure.tags) || figure.tags.length > 8 || !figure.tags.every((tag) => TAG.test(tag) && tag.length <= 32) || new Set(figure.tags).size !== figure.tags.length)) fail("tags must be up to 8 unique kebab-case words");

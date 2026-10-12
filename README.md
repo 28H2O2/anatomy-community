@@ -15,7 +15,7 @@
 
 ## What this is
 
-A shared collection of figures made with the Anatomy skill. Each figure is stored as its **source**: the `build.mjs` the skill wrote, plus a `figure.json` that says who made it, with what prompt and with which skill version. There are no built pages or images in `main`.
+A shared collection of figures made with the Anatomy skill, in any theme and colours. Each figure is stored as its **source**: the `build.mjs` the skill wrote, plus a `figure.json` that says who made it, with what prompt and with which skill version. There are no built pages or images in `main`.
 
 Because every Anatomy figure rebuilds byte for byte from its source, CI rebuilds each one on every check, in a locked sandbox, and makes the pages and the preview image itself. The previews live on the [`previews`](https://github.com/wheresryan22/anatomy-community/tree/previews) branch, which CI rewrites after every merge.
 
@@ -28,56 +28,42 @@ figures/<author>/<id>/
 
 ## Upload a figure
 
-**You need:**
-- the [Anatomy skill](https://github.com/wheresryan22/anatomy), in Claude Code, OpenCode or Codex, in a version that has `scripts/publish.mjs`;
-- Node.js 22, git and the [GitHub CLI](https://cli.github.com/) (`gh`), signed in;
-- [Docker](https://www.docker.com/), optional but recommended, to run the same locked checks as CI before you send.
+There are two ways. Neither needs you to fork or use git by hand.
 
-**1. Fork and clone this repository**
+### With your agent (Claude Code, OpenCode or Codex)
 
-```sh
-gh repo fork wheresryan22/anatomy-community --clone
-cd anatomy-community
-```
+**You need** the [Anatomy skill](https://github.com/wheresryan22/anatomy) in a version with `scripts/publish.mjs`, and the [GitHub CLI](https://cli.github.com/) signed in (`gh auth login`). [Docker](https://www.docker.com/) is optional, for running the same locked checks before you send.
 
-**2. Make your figure with Anatomy**
+1. **Make your figure** with Anatomy, as usual: `/anatomy explain how a token bucket rate limiter works, interactive`. The gallery takes **plain HTML** figures (a `build.mjs` that writes standalone pages), in any theme and colours.
+2. **Ask your agent:** *"publish this figure to the Anatomy community gallery"*. It asks for a title, a short id and your GitHub name, then shows exactly what it will send.
+3. **Say yes.** It opens the pull request for you and gives you the link. If you don't have push access, it makes a fork for you first.
 
-Ask for it as usual, for example `/anatomy explain how a token bucket rate limiter works, interactive`. The gallery takes **plain HTML** figures (a `build.mjs` that writes standalone pages), and it shows the **light** page. So check the light page looks right; a dark page is optional.
-
-**3. Publish it into your clone**
-
-Ask your agent: *"publish this figure to the Anatomy community gallery"*. It asks you for a title and your GitHub name, then runs the publish script. Or run the script yourself:
+Or run the same thing yourself, from a clone of this repository (`gh repo clone wheresryan22/anatomy-community`):
 
 ```sh
 node <anatomy skill folder>/scripts/publish.mjs <your figure folder> --into . \
   --id token-bucket-bench --title "Token bucket air bench" --author <your-github-name> \
-  --prompt "/anatomy explain how a token bucket rate limiter works, interactive"
+  --prompt "/anatomy explain how a token bucket rate limiter works, interactive" --submit
 ```
 
-It copies **only the source** into `figures/<your-github-name>/token-bucket-bench/`, points its kit imports at `.skill/` (a link to your skill, which git ignores), records which skill version made it, checks that it builds, and saves a quick preview to `shots/<your-github-name>-token-bucket-bench/preview.png` so you can see it straight away.
+It copies **only the source** into `figures/<your-github-name>/token-bucket-bench/`, records which skill version made it, checks it builds, saves a quick preview to `shots/`, then asks before it pushes and opens the pull request. `--dry-run` shows the plan without doing anything; `--force` sends an updated version to the same pull request.
 
-**4. Check it like CI will** (optional, recommended)
+To run the CI checks on your machine first:
 
 ```sh
 docker build --platform linux/amd64 -t anatomy-sandbox:local sandbox
 node scripts/validate.mjs figures/<your-github-name>/token-bucket-bench
 ```
 
-The first command is only needed once. The check must end with `passed`. It writes the built pages, the poster and screenshots to `shots/`. Without Docker it still runs every check except the network isolation.
+### Without a terminal: the form
 
-**5. Open a pull request**
+1. Put your figure's source files in a [GitHub Gist](https://gist.github.com/) under your own account: `build.mjs`, plus any file it reads (`live.js`, a `.css`, …). Leave out the built `.html` pages.
+2. Open a [**Submit a figure**](https://github.com/wheresryan22/anatomy-community/issues/new?template=submit-figure.yml) issue, and fill in the Gist link, an id, a title and the prompt.
+3. A bot puts the files in the right folder, opens the pull request for you and links it in a comment. If something's missing, it says what; edit the issue to try again.
 
-```sh
-git switch -c figure/token-bucket-bench
-git add figures/<your-github-name>/token-bucket-bench
-git commit -m "Add Token bucket air bench"
-git push -u origin figure/token-bucket-bench
-gh pr create --repo wheresryan22/anatomy-community --fill
-```
+### Then
 
-**6. Wait for the checks and the preview**
-
-Two checks run (next section). When they finish, a comment on your pull request shows the preview CI made of your figure. A maintainer reviews it and merges. After the merge, your figure appears on the [`previews`](https://github.com/wheresryan22/anatomy-community/tree/previews) branch and, while it is among the six newest, at the top of this page.
+The checks run on the pull request (next section). When they finish, a comment shows the preview CI made of your figure. A maintainer reviews and merges, and your figure appears on the [`previews`](https://github.com/wheresryan22/anatomy-community/tree/previews) branch and, while it is among the six newest, at the top of this page.
 
 ## What happens to your pull request
 
@@ -89,10 +75,10 @@ Your figure's `build.mjs` is code from someone else, so it is checked before it 
 | 2 | **Files** | `figure.json` is complete and matches its folder; only source files (`.mjs`, `.js`, `.css`, `.html`, `.json`, `.md`, `.txt`, `.svg`), at most 1 MB each and 2 MB in all; no built pages, no images, no symlinks. |
 | 3 | **Code analysis** | Every source file is parsed and refused if it reaches the network, environment variables, cookies, other windows, `eval` or `Function`, by any route however disguised, or imports anything except the skill, its own files, `node:fs`, `node:path`, `node:url`, `node:crypto` and `node:process`. |
 | 4 | **Skill version** | The exact Anatomy version that made the figure is found from its kit fingerprint, and that version is used. |
-| 5 | **Locked build** | The build runs **twice** in a pinned container (Node 22.23.3, Chrome for Testing 155) with no network, a read-only system, no privileges, limited memory, processes and time, and write access only to its own `src/`. Both runs must write exactly the pages listed in `figure.json`, byte for byte the same. |
+| 5 | **Locked build** | The build runs **twice** in a pinned container (Node 22.23.3, Chrome for Testing 155) with no network, a read-only system, no privileges, limited memory, processes and time, and write access only to its own `src/`. Both runs must write the same `.html` pages (the ones listed in `figure.json`, or whatever the build writes if none are listed) and nothing else, byte for byte the same. |
 | 6 | **Output** | The built pages get the same safety scan, so a payload the source hides is still caught. Each page is at most 4 MB. |
 | 7 | **Browser** | Chrome loads every page in the same locked container. The skill's line check must pass, nothing may try to load from outside, and the figure must hold still with reduced motion on. |
-| 8 | **Preview** | The light page becomes the poster and the preview posted on your pull request. |
+| 8 | **Preview** | The page named in `preview` (or the light page, or the first one) becomes the poster and the preview posted on your pull request. |
 
 The checker always comes from `main`, never from the pull request. Figure code only ever runs inside the sandbox, with a read-only token and no secrets, and the jobs that write previews never run figure code. A check takes about 2 minutes for a simple figure and 10–20 for a heavy one with `--audit`.
 
@@ -115,12 +101,13 @@ NODE_PATH=/tmp/anatomy-tools/node_modules node --test scripts/units.test.mjs
 
 ## Rules in short
 
-Your own work, in your own folder, under MIT or CC-BY-4.0. A real object built from many small precise parts, not boxes and arrows, and every number it shows is true. Plain HTML, light page required. Deterministic, still under reduced motion, and nothing that talks to the outside. [CONTRIBUTING.md](CONTRIBUTING.md) has the full rules and every field of `figure.json`.
+Your own work, in your own folder, under MIT or CC-BY-4.0. A real object built from many small precise parts, not boxes and arrows, and every number it shows is true. Plain HTML, any theme. Deterministic, still under reduced motion, and nothing that talks to the outside. [CONTRIBUTING.md](CONTRIBUTING.md) has the full rules and every field of `figure.json`.
 
 ## For maintainers
 
 - Protect `main`: require a pull request with a review, and require the **Scope** and **Check figures** checks.
-- In Actions settings, require approval before workflows run for outside contributors.
+- In Actions settings: require approval before workflows run for outside contributors, and allow GitHub Actions to create pull requests (the form's bot opens them).
+- The form needs a `submission` label: `gh label create submission -R wheresryan22/anatomy-community --color 0E8A16 --description "Figure submitted through the form"`.
 - The **Previews** workflow can be run by hand (Actions → Previews → Run workflow) to rebuild every preview.
 
 ## License

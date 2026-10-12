@@ -54,6 +54,11 @@ for (const [name, mutate, expected] of faults) test(`rejects ${name}`, { skip: !
   } finally { done(); }
 });
 
+test("a figure with no pages listed and only a dark page passes", { skip: !ready }, () => {
+  const { folder, done } = copy((f) => edit(join(f, "figure.json"), (t) => { const j = JSON.parse(t); delete j.pages; j.build = [["src/build.mjs"]]; return JSON.stringify(j, null, 2); }));
+  try { assert.deepEqual(check(folder).errors, []); } finally { done(); }
+});
+
 test("a build cannot write outside its own folder", { skip: !ready }, () => {
   const { folder, repo, done } = copy((f) => edit(build(f), (t) => t + '\nwriteFileSync(join(HERE, "..", "..", "..", "escaped.txt"), "x");\n'));
   try {

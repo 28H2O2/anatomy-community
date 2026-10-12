@@ -17,10 +17,17 @@ test("the fingerprint is stable, order-free and limited to the kit", () => {
 });
 
 test("a complete figure.json passes the schema", () => assert.deepEqual(validateFigure(good, { author: "octo-cat", id: "token-bucket" }), []));
+test("any theme works: one page, custom names, or no pages listed at all", () => {
+  assert.deepEqual(validateFigure({ ...good, pages: { dark: "src/a.html" } }), []);
+  assert.deepEqual(validateFigure({ ...good, pages: { sepia: "src/a-sepia.html", night: "src/a-night.html" }, preview: "sepia" }), []);
+  const { pages, ...withoutPages } = good;
+  assert.deepEqual(validateFigure(withoutPages), []);
+});
 for (const [name, patch, where, pattern] of [
   ["unknown fields", { extra: 1 }, {}, /unknown field "extra"/],
-  ["a dark page without a light one", { pages: { dark: "src/a.html" } }, {}, /pages\.light is required/],
   ["paths outside src", { pages: { light: "../x.html" } }, {}, /pages\.light must be an \.html file under src/],
+  ["a preview that is not one of the pages", { preview: "sepia" }, {}, /preview must be the name of one of the pages/],
+  ["a bad page name", { pages: { "Night Mode": "src/a.html" } }, {}, /must be a short kebab-case word/],
   ["--audit inside build", { build: [["src/build.mjs", "--audit"]] }, {}, /put --audit in the audit field/],
   ["an author that is not the folder", {}, { author: "someone-else" }, /must match the folder figures\/someone-else/],
   ["an id that is not the folder", {}, { id: "other" }, /must match the folder name "other"/],
@@ -128,4 +135,78 @@ test("the index pages: newest on the front, 100 per page, by author and by kind"
   assert.match(pages.get("all/1.md"), /src="\.\.\/previews\//);
   assert.equal(latestOf(many).length, 6);
   assert.ok(latestOf(many)[0].created >= latestOf(many)[5].created);
+});
+
+import { parseIssue, checkRequest, figureFromGist, rewriteKitImports } from "./submit.mjs";
+
+const issueBody = `### Gist link
+
+https://gist.github.com/Octo-Cat/0123456789abcdef0123
+
+### Figure id
+
+token-bucket
+
+### Title
+
+Token bucket
+
+### Prompt
+
+/anatomy explain a token bucket
+
+### Agent
+
+Codex
+
+### Model
+
+_No response_
+
+### License
+
+MIT
+
+### Tags
+
+networking, Rate Limiting
+
+### Your own work
+
+- [X] I made this figure, and I'm fine with it being shared under the license above.`;
+
+test("the submission form is read field by field", () => {
+  const f = parseIssue(issueBody);
+  assert.equal(f.gist, "https://gist.github.com/Octo-Cat/0123456789abcdef0123");
+  assert.equal(f.id, "token-bucket");
+  assert.equal(f.model, "");
+  const r = checkRequest(f);
+  assert.deepEqual(r.problems, []);
+  assert.equal(r.gistId, "0123456789abcdef0123");
+  assert.ok(checkRequest({ ...f, gist: "https://evil.example/x" }).problems.length);
+  assert.ok(checkRequest({ ...f, own: "- [ ] I made this" }).problems.length);
+});
+
+test("kit imports from any install path are pointed at .skill", () => {
+  const out = rewriteKitImports('import * as k from "/Users/x/.claude/skills/anatomy/kit/iso-kit.mjs";\nimport { kitScript } from "../../scripts/inline-kit.mjs";\nimport "./live.mjs";\nimport * as g from "~/.agents/skills/anatomy/kit/lathe.mjs";');
+  assert.match(out, /from "\.\.\/\.\.\/\.\.\/\.\.\/\.skill\/kit\/iso-kit\.mjs"/);
+  assert.match(out, /from "\.\.\/\.\.\/\.\.\/\.\.\/\.skill\/scripts\/inline-kit\.mjs"/);
+  assert.match(out, /import "\.\/live\.mjs"/);
+  assert.match(out, /from "\.\.\/\.\.\/\.\.\/\.\.\/\.skill\/kit\/lathe\.mjs"/);
+});
+
+test("a gist becomes a figure, and unsafe gists are refused", () => {
+  const gist = { owner: { login: "octo-cat" }, files: { "build.mjs": { content: 'import * as k from "../../kit/iso-kit.mjs"; const light = process.argv.includes("--light");' } } };
+  const fields = parseIssue(issueBody);
+  const ok = figureFromGist({ fields, gist, author: "Octo-Cat", kit: "sha256:" + "a".repeat(64), commit: "a".repeat(40), date: "2026-10-12" });
+  assert.deepEqual(ok.problems, []);
+  assert.deepEqual(ok.figure.build, [["src/build.mjs", "--light"], ["src/build.mjs"]]);
+  assert.deepEqual(ok.figure.tags, ["networking", "rate-limiting"]);
+  assert.equal(ok.figure.pages, undefined);
+  const refuse = (patch, pattern) => assert.ok(figureFromGist({ fields, author: "octo-cat", kit: "sha256:" + "a".repeat(64), date: "2026-10-12", gist: { ...gist, ...patch } }).problems.some((p) => pattern.test(p)), String(pattern));
+  refuse({ owner: { login: "someone" } }, /must be one of your own gists/);
+  refuse({ files: { "build.mjs": { truncated: true } } }, /too large/);
+  refuse({ files: { ...gist.files, "page.html": { content: "<html>" } } }, /leave the built pages out/);
+  refuse({ files: { "other.mjs": { content: "1" } } }, /needs a build\.mjs/);
+  refuse({ files: { ...gist.files, "tool.wasm": { content: "x" } } }, /only \.mjs/);
 });

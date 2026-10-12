@@ -26,7 +26,7 @@ function listFiles(dir, root = dir, out = []) {
 }
 
 const tail = (text, lines) => text.trim().split("\n").filter((line) => !/ExperimentalWarning|--trace-warnings/.test(line)).slice(-lines).join("\n");
-const themeOf = (html) => (html.match(/<body[^>]*\bdata-theme="(light|dark)"/) ?? [])[1] ?? "dark";
+const pageName = (path) => path.replace(/^.*\//, "").replace(/\.html$/, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "page";
 const consoleClean = (output) => /console: clean/.test(output) && !/net::ERR_|Failed to load resource|Refused to (?:load|connect)|blocked:/i.test(output);
 
 export function locate(folderArg) {
@@ -77,7 +77,7 @@ export function validateFolder(folderArg, options = {}) {
   const total = listFiles(folder).reduce((sum, f) => sum + (f.size ?? 0), 0);
   if (total > LIMITS.folder) layout.push(`the folder is ${(total / 1048576).toFixed(2)} MB; the source may be at most ${LIMITS.folder >> 20} MB`);
   if (schemaOk) {
-    for (const page of Object.values(figure.pages)) if (existsSync(join(folder, page))) layout.push(`${page} is committed: built pages are made by CI from the source; delete it`);
+    for (const page of Object.values(figure.pages ?? {})) if (existsSync(join(folder, page))) layout.push(`${page} is committed: built pages are made by CI from the source; delete it`);
     for (const [script] of figure.build) if (!existsSync(join(folder, script))) layout.push(`build script ${script} does not exist`);
   }
   step("files", layout, `${(total / 1024).toFixed(0)} KB of source`);
@@ -109,7 +109,7 @@ export function validateFolder(folderArg, options = {}) {
   }
 
   const rel = `figures/${author}/${id}`;
-  const pages = Object.entries(figure.pages);
+  let pages = figure.pages ? Object.entries(figure.pages) : null;
   const builds = [];
   const work = [];
   const build = [];
@@ -131,12 +131,31 @@ export function validateFolder(folderArg, options = {}) {
       else if (!before.get(file.path).equals(bytes)) build.push(`the build changed its own source src/${file.path}`);
     }
     for (const path of before.keys()) if (!existsSync(join(workspace, rel, "src", path))) build.push(`the build deleted src/${path}`);
-    for (const path of produced.keys()) if (!pages.some(([, page]) => page === path)) build.push(`the build wrote ${path}, which is not one of its pages`);
-    for (const [key, page] of pages) if (!produced.has(page)) build.push(`the build did not write pages.${key} ${page}`);
+    if (!pages) {
+      const html = [...produced.keys()].filter((path) => path.endsWith(".html")).sort();
+      for (const path of produced.keys()) if (!path.endsWith(".html")) build.push(`the build wrote ${path}; it may only write .html pages`);
+      if (!html.length) build.push("the build wrote no .html page");
+      if (html.length > 6) build.push(`the build wrote ${html.length} pages; at most 6`);
+      const names = new Map();
+      for (const path of html) {
+        let name = pageName(path);
+        while (names.has(name)) name = `${name}-2`;
+        names.set(name, path);
+      }
+      pages = [...names.entries()];
+    } else {
+      for (const path of produced.keys()) if (!pages.some(([, page]) => page === path)) build.push(`the build wrote ${path}, which is not one of its pages`);
+      for (const [key, page] of pages) if (!produced.has(page)) build.push(`the build did not write pages.${key} ${page}`);
+    }
     builds.push(produced);
     if (build.length) break;
   }
-  if (!build.length) for (const [, page] of pages) if (!builds[0].get(page).equals(builds[1].get(page))) build.push(`${page} came out different on a second build: the build must be deterministic (no randomness, clocks or environment)`);
+  if (!build.length && builds.length === 2) {
+    const first = [...builds[0].keys()].sort().join(",");
+    const second = [...builds[1].keys()].sort().join(",");
+    if (first !== second) build.push(`the two builds wrote different files (${first} / ${second}): the build must be deterministic`);
+    else for (const [, page] of pages) if (!builds[0].get(page).equals(builds[1].get(page))) build.push(`${page} came out different on a second build: the build must be deterministic (no randomness, clocks or environment)`);
+  }
   step("build", [...new Set(build)], mode === "docker" ? "built twice in the locked container, identical" : "built twice, identical");
 
   const output = [];
@@ -144,7 +163,6 @@ export function validateFolder(folderArg, options = {}) {
     const bytes = builds[0].get(page);
     if (bytes.length > LIMITS.page) output.push(`${page} is ${(bytes.length / 1048576).toFixed(1)} MB, over ${LIMITS.page >> 20} MB`);
     const html = bytes.toString("utf8");
-    if (themeOf(html) !== key) output.push(`pages.${key} ${page} is a ${themeOf(html)} page; build it with${key === "light" ? " --light" : "out --light"}`);
     output.push(...scanText(page, html));
   }
   const outputOk = !build.length && step("output", [...new Set(output)]);
@@ -175,7 +193,9 @@ export function validateFolder(folderArg, options = {}) {
       }
       writeFileSync(join(out, basename(page)), builds[0].get(page));
     }
-    if (existsSync(join(out, "light.png"))) cpSync(join(out, "light.png"), join(out, "poster.png"));
+    const chosen = figure.preview ?? (pages.some(([name]) => name === "light") ? "light" : pages[0][0]);
+    if (existsSync(join(out, `${chosen}.png`))) cpSync(join(out, `${chosen}.png`), join(out, "poster.png"));
+    writeFileSync(join(out, "pages.json"), JSON.stringify(Object.fromEntries(pages)));
     step("browser", browser, `screenshots, poster and built pages in ${relativeTo(ROOT, out) || out}`);
   } else if (options.noBrowser) notes.push("browser: skipped");
 

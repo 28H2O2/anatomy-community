@@ -64,8 +64,16 @@ function linkLocal(path, kit) {
   return local;
 }
 
+export function latest() {
+  ensureCache();
+  const commit = git(["rev-parse", "origin/HEAD"]).toString().trim();
+  return { commit, kit: fingerprintAt(commit) };
+}
+
 const argv = process.argv.slice(2);
-if (argv[0] && !argv[0].startsWith("--")) {
+if (argv[0] === "--latest") {
+  console.log(JSON.stringify(latest()));
+} else if (argv[0] && !argv[0].startsWith("--")) {
   const folder = resolve(argv[0]);
   const figure = JSON.parse(readFileSync(join(folder, "figure.json"), "utf8"));
   const localAt = argv.indexOf("--local");

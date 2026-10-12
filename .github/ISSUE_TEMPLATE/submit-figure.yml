@@ -1,0 +1,71 @@
+name: Submit a figure
+description: Share a figure you made with Anatomy, without git. A bot turns it into a pull request.
+title: "Figure: "
+labels: [submission]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Put your figure's source files in a **GitHub Gist** under your own account: `build.mjs`, plus any file it reads (`live.js`, a `.css`, …). Don't include the built `.html` pages. Then fill this in. A bot checks it and opens a pull request for you; a comment here links to it.
+  - type: input
+    id: gist
+    attributes:
+      label: Gist link
+      placeholder: https://gist.github.com/your-name/0123456789abcdef0123
+    validations:
+      required: true
+  - type: input
+    id: id
+    attributes:
+      label: Figure id
+      description: Lowercase words joined by dashes. It becomes the folder name.
+      placeholder: token-bucket-bench
+    validations:
+      required: true
+  - type: input
+    id: title
+    attributes:
+      label: Title
+      placeholder: Token bucket air bench
+    validations:
+      required: true
+  - type: textarea
+    id: prompt
+    attributes:
+      label: Prompt
+      description: The request that made the figure.
+      placeholder: /anatomy explain how a token bucket rate limiter works, interactive
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options: [Claude Code, OpenCode, Codex, Other]
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: Optional.
+  - type: dropdown
+    id: license
+    attributes:
+      label: License
+      options: [MIT, CC-BY-4.0]
+    validations:
+      required: true
+  - type: input
+    id: tags
+    attributes:
+      label: Tags
+      description: Optional, up to 8, comma separated.
+      placeholder: networking, rate-limiting
+  - type: checkboxes
+    id: own
+    attributes:
+      label: Your own work
+      options:
+        - label: I made this figure, and I'm fine with it being shared under the license above.
+          required: true
