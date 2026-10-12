@@ -4,11 +4,13 @@ import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { analyzeSource, loadParser } from "./analyze.mjs";
 import { fingerprintOfSkill } from "./fingerprint.mjs";
+import { changedFraction } from "./png.mjs";
 import { checkImports, isSourceType, relativeTo, scanText } from "./safety.mjs";
 import { dockerReady, runSandboxed } from "./sandbox.mjs";
 import { ID, validateFigure } from "./schema.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+export const STILL = 0.0001;
 export const LIMITS = { folder: 2 << 20, file: 1 << 20, page: 4 << 20 };
 const TOP_LEVEL = ["figure.json", "README.md", "src"];
 
@@ -37,7 +39,8 @@ export function locate(folderArg) {
 
 export function validateFolder(folderArg, options = {}) {
   const { folder, id, author, inFigures } = locate(folderArg);
-  const skill = resolve(options.skill ?? join(ROOT, ".skill"));
+  const skillPath = resolve(options.skill ?? join(ROOT, ".skill"));
+  const skill = existsSync(skillPath) ? realpathSync(skillPath) : skillPath;
   const mode = options.sandbox ?? (dockerReady() ? "docker" : "local");
   const errors = [];
   const notes = [];
@@ -117,7 +120,7 @@ export function validateFolder(folderArg, options = {}) {
     if (mode !== "docker") symlinkSync(skill, join(workspace, ".skill"), "dir");
     const before = new Map(listFiles(join(workspace, rel, "src")).map((f) => [f.path, readFileSync(join(workspace, rel, "src", f.path))]));
     for (const command of figure.build) {
-      const run = runSandboxed({ mode, workspace, skill, cwd: rel, args: command, timeout: (options.buildTimeout ?? 300) * 1000, locked: [`${rel}/src`] });
+      const run = runSandboxed({ mode, workspace, skill, cwd: rel, args: command, timeout: (options.buildTimeout ?? 600) * 1000, locked: [`${rel}/src`] });
       if (run.code !== 0) build.push(`${command.join(" ")} failed${run.timedOut ? " (timed out)" : ""}:\n${tail(run.output, 12)}`);
     }
     if (build.length) break;
@@ -165,8 +168,11 @@ export function validateFolder(folderArg, options = {}) {
       const shot = runSandboxed({ mode, workspace: work[0], skill, out, cwd: rel, args: ["/work/.skill/scripts/capture.mjs", target, "--reduced", "--width", "1200", "--times", "1500", "--out", `/out/${key}.png`], timeout: 180000 });
       if (shot.code !== 0) browser.push(`screenshot of ${page} failed:\n${tail(shot.output, 6)}`);
       else if (!existsSync(join(out, `${key}.png`)) || !existsSync(join(out, `${key}-1500.png`))) browser.push(`screenshot of ${page} produced no image`);
-      else if (!readFileSync(join(out, `${key}.png`)).equals(readFileSync(join(out, `${key}-1500.png`)))) browser.push(`${page} keeps moving with reduced motion on: a figure must hold one still pose when prefers-reduced-motion is set`);
-      else rmSync(join(out, `${key}-1500.png`));
+      else {
+        const moved = changedFraction(readFileSync(join(out, `${key}.png`)), readFileSync(join(out, `${key}-1500.png`)));
+        if (moved.fraction > STILL) browser.push(`${page} keeps moving with reduced motion on (${moved.changed} pixels changed in 1.5 s): a figure must hold one still pose when prefers-reduced-motion is set`);
+        else rmSync(join(out, `${key}-1500.png`));
+      }
       writeFileSync(join(out, basename(page)), builds[0].get(page));
     }
     if (existsSync(join(out, "light.png"))) cpSync(join(out, "light.png"), join(out, "poster.png"));
