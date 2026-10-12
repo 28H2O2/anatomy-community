@@ -1,20 +1,16 @@
-import { spawnSync } from "node:child_process";
-import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { analyzeSource, loadParser } from "./analyze.mjs";
 import { fingerprintOfSkill } from "./fingerprint.mjs";
 import { checkImports, isSourceType, relativeTo, scanText } from "./safety.mjs";
-import { validateFigure } from "./schema.mjs";
+import { dockerReady, runSandboxed } from "./sandbox.mjs";
+import { ID, validateFigure } from "./schema.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const LIMITS = { page: 4 << 20, folder: 12 << 20, poster: 600 << 10, file: 4 << 20 };
-const TOP_LEVEL = ["figure.json", "poster.png", "README.md", "src"];
-
-export function pngSize(buffer) {
-  const signature = "89504e470d0a1a0a";
-  if (buffer.length < 24 || buffer.subarray(0, 8).toString("hex") !== signature || buffer.subarray(12, 16).toString() !== "IHDR") return null;
-  return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
-}
+export const LIMITS = { folder: 2 << 20, file: 1 << 20, page: 4 << 20 };
+const TOP_LEVEL = ["figure.json", "README.md", "src"];
 
 function listFiles(dir, root = dir, out = []) {
   for (const name of readdirSync(dir).sort()) {
@@ -27,42 +23,47 @@ function listFiles(dir, root = dir, out = []) {
   return out;
 }
 
-const snapshot = (folder) => new Map(listFiles(join(folder, "src")).filter((f) => !f.link).map((f) => [f.path, readFileSync(join(folder, "src", f.path))]));
+const tail = (text, lines) => text.trim().split("\n").filter((line) => !/ExperimentalWarning|--trace-warnings/.test(line)).slice(-lines).join("\n");
+const themeOf = (html) => (html.match(/<body[^>]*\bdata-theme="(light|dark)"/) ?? [])[1] ?? "dark";
+const consoleClean = (output) => /console: clean/.test(output) && !/net::ERR_|Failed to load resource|Refused to (?:load|connect)|blocked:/i.test(output);
 
-function restore(folder, before) {
-  const after = snapshot(folder);
-  for (const path of after.keys()) if (!before.has(path)) rmSync(join(folder, "src", path));
-  for (const [path, bytes] of before) if (!after.has(path) || !after.get(path).equals(bytes)) writeFileSync(join(folder, "src", path), bytes);
-}
-
-function run(args, { cwd, timeout }) {
-  const result = spawnSync(process.execPath, args, { cwd, timeout, encoding: "utf8", maxBuffer: 64 << 20, env: { PATH: process.env.PATH, HOME: process.env.HOME, CHROME_PATH: process.env.CHROME_PATH ?? "" } });
-  return { code: result.status ?? (result.signal ? 1 : 0), output: `${result.stdout ?? ""}${result.stderr ?? ""}`, timedOut: result.error?.code === "ETIMEDOUT" };
+export function locate(folderArg) {
+  const folder = resolve(folderArg);
+  const id = basename(folder);
+  const author = basename(dirname(folder));
+  const figures = dirname(dirname(folder));
+  return { folder, id, author, inFigures: basename(figures) === "figures" };
 }
 
 export function validateFolder(folderArg, options = {}) {
-  const folder = resolve(folderArg);
-  const id = basename(folder);
-  const skill = options.skill ?? join(ROOT, ".skill");
+  const { folder, id, author, inFigures } = locate(folderArg);
+  const skill = resolve(options.skill ?? join(ROOT, ".skill"));
+  const mode = options.sandbox ?? (dockerReady() ? "docker" : "local");
   const errors = [];
   const notes = [];
-  const step = (name, problems) => {
+  const step = (name, problems, detail) => {
     if (problems.length) errors.push(...problems.map((p) => `${name}: ${p}`));
-    else notes.push(`${name}: ok`);
+    else notes.push(`${name}: ok${detail ? ` (${detail})` : ""}`);
     return problems.length === 0;
   };
+  const result = () => ({ id: `${author}/${id}`, errors, notes, mode });
 
+  if (!inFigures || !ID.test(id) || !/^[a-z0-9](?:[a-z0-9]|-(?=[a-z0-9])){0,38}$/.test(author)) {
+    errors.push(`location: a figure lives at figures/<author>/<id>/, lowercase (got ${relativeTo(ROOT, folder)})`);
+    return result();
+  }
   let figure;
   try {
     figure = JSON.parse(readFileSync(join(folder, "figure.json"), "utf8"));
   } catch (error) {
-    return { id, errors: [`figure.json: ${error.message}`], notes };
+    errors.push(`figure.json: ${error.message}`);
+    return result();
   }
-  const schemaOk = step("schema", [...validateFigure(figure, id), ...(options.contributor && figure.featured ? ["only maintainers set featured"] : [])]);
+  const schemaOk = step("schema", [...validateFigure(figure, { author, id }), ...(options.contributor && figure.featured ? ["only maintainers set featured"] : [])]);
 
-  const files = [];
   const layout = [];
-  for (const name of readdirSync(folder)) if (!TOP_LEVEL.includes(name)) layout.push(`unexpected ${name} (allowed: ${TOP_LEVEL.join(", ")})`);
+  const files = [];
+  for (const name of readdirSync(folder)) if (!TOP_LEVEL.includes(name)) layout.push(`unexpected ${name} (allowed: ${TOP_LEVEL.join(", ")}; pages and the poster are built by CI, not committed)`);
   if (!existsSync(join(folder, "src"))) layout.push("src/ is missing");
   else for (const file of listFiles(join(folder, "src"))) {
     files.push(file);
@@ -71,118 +72,124 @@ export function validateFolder(folderArg, options = {}) {
     else if (file.size > LIMITS.file) layout.push(`src/${file.path} is over ${LIMITS.file >> 20} MB`);
   }
   const total = listFiles(folder).reduce((sum, f) => sum + (f.size ?? 0), 0);
-  if (total > LIMITS.folder) layout.push(`folder is ${(total / 1048576).toFixed(1)} MB, over ${LIMITS.folder >> 20} MB`);
-  if (schemaOk) for (const key of ["dark", "light"]) {
-    const page = figure.pages[key];
-    if (!page) continue;
-    if (!existsSync(join(folder, page))) layout.push(`pages.${key} ${page} does not exist`);
-    else if (lstatSync(join(folder, page)).size > LIMITS.page) layout.push(`${page} is over ${LIMITS.page >> 20} MB`);
-    else {
-      const theme = (readFileSync(join(folder, page), "utf8").match(/<body[^>]*\bdata-theme="(light|dark)"/) ?? [])[1] ?? "dark";
-      if (theme !== key) layout.push(`pages.${key} ${page} is a ${theme} page; build it with${key === "light" ? " --light" : "out --light"}`);
-    }
+  if (total > LIMITS.folder) layout.push(`the folder is ${(total / 1048576).toFixed(2)} MB; the source may be at most ${LIMITS.folder >> 20} MB`);
+  if (schemaOk) {
+    for (const page of Object.values(figure.pages)) if (existsSync(join(folder, page))) layout.push(`${page} is committed: built pages are made by CI from the source; delete it`);
+    for (const [script] of figure.build) if (!existsSync(join(folder, script))) layout.push(`build script ${script} does not exist`);
   }
-  if (schemaOk) for (const [script] of figure.build) if (!existsSync(join(folder, script))) layout.push(`build script ${script} does not exist`);
-  step("files", layout);
+  step("files", layout, `${(total / 1024).toFixed(0)} KB of source`);
 
-  const poster = [];
-  if (!existsSync(join(folder, "poster.png"))) poster.push("poster.png is missing");
-  else {
-    const bytes = readFileSync(join(folder, "poster.png"));
-    const size = pngSize(bytes);
-    if (!size) poster.push("poster.png is not a PNG");
-    else if (size.width < 600 || size.height < 400 || size.width > 3200 || size.height > 2400) poster.push(`poster.png is ${size.width}×${size.height}; keep it between 600×400 and 3200×2400`);
-    if (bytes.length > LIMITS.poster) poster.push(`poster.png is over ${LIMITS.poster >> 10} KB`);
-  }
-  step("poster", poster);
-
+  const acorn = loadParser();
   const safety = [];
+  if (!acorn) {
+    if (mode === "docker" || options.strict) safety.push("the JavaScript parser (acorn) is not available; the code analysis cannot run");
+    else notes.push("analysis: skipped locally (acorn not installed); CI runs it");
+  }
   for (const file of files) {
     if (file.link || !isSourceType(file.path) || file.size > LIMITS.file) continue;
     const text = readFileSync(join(folder, "src", file.path), "utf8");
     const path = `src/${file.path}`;
-    safety.push(...scanText(path, text), ...checkImports(path, text, { folder, skill }));
+    safety.push(...scanText(path, text), ...checkImports(path, text, { folder, skill: join(dirname(dirname(dirname(folder))), ".skill") }));
+    if (acorn && /\.m?js$/.test(file.path)) safety.push(...analyzeSource(path, text, acorn));
   }
-  const safe = step("safety", safety);
-
-  if (!schemaOk || !safe || errors.some((e) => e.startsWith("files:"))) return { id, errors, notes, stopped: "fix the problems above first; nothing was built" };
+  const safe = step("safety", [...new Set(safety)]);
+  if (!schemaOk || !safe || errors.some((e) => e.startsWith("files:"))) return { ...result(), stopped: "fix the problems above first; nothing was run" };
 
   const kit = [];
-  if (!existsSync(skill)) kit.push("no .skill folder: run node scripts/skill.mjs first");
-  else {
-    const found = fingerprintOfSkill(skill);
-    if (found !== figure.skill.kit) kit.push(`.skill has kit ${found}, figure needs ${figure.skill.kit}`);
+  if (!existsSync(skill)) kit.push("no .skill: run node scripts/skill.mjs <figure folder> first");
+  else if (fingerprintOfSkill(skill) !== figure.skill.kit) kit.push(`.skill has kit ${fingerprintOfSkill(skill)}, the figure needs ${figure.skill.kit}`);
+  if (!step("skill", kit)) return result();
+  if (mode !== "docker") notes.push("sandbox: local mode, the build is NOT network-isolated; CI runs it in the locked container");
+  if (options.requireDocker && mode !== "docker") {
+    errors.push("sandbox: the locked container is required (build it with docker build -t anatomy-sandbox:local sandbox)");
+    return result();
   }
-  if (!step("skill", kit)) return { id, errors, notes };
 
-  const before = snapshot(folder);
-  const rebuild = [];
-  try {
+  const rel = `figures/${author}/${id}`;
+  const pages = Object.entries(figure.pages);
+  const builds = [];
+  const work = [];
+  const build = [];
+  for (let round = 0; round < 2; round++) {
+    const workspace = realpathSync(mkdtempSync(join(tmpdir(), "anatomy-check-")));
+    work.push(workspace);
+    cpSync(folder, join(workspace, rel), { recursive: true });
+    if (mode !== "docker") symlinkSync(skill, join(workspace, ".skill"), "dir");
+    const before = new Map(listFiles(join(workspace, rel, "src")).map((f) => [f.path, readFileSync(join(workspace, rel, "src", f.path))]));
     for (const command of figure.build) {
-      const result = run(command, { cwd: folder, timeout: (options.buildTimeout ?? 300) * 1000 });
-      if (result.code !== 0) rebuild.push(`${command.join(" ")} failed${result.timedOut ? " (timed out)" : ""}:\n${result.output.trim().split("\n").slice(-12).join("\n")}`);
+      const run = runSandboxed({ mode, workspace, skill, cwd: rel, args: command, timeout: (options.buildTimeout ?? 300) * 1000, locked: [`${rel}/src`] });
+      if (run.code !== 0) build.push(`${command.join(" ")} failed${run.timedOut ? " (timed out)" : ""}:\n${tail(run.output, 12)}`);
     }
-    if (!rebuild.length) {
-      const after = snapshot(folder);
-      for (const [path, bytes] of after) {
-        if (!before.has(path)) rebuild.push(`the build wrote a new file src/${path}`);
-        else if (!before.get(path).equals(bytes)) rebuild.push(`src/${path} changed when rebuilt: the committed file must be exactly what build produces`);
-      }
-      for (const path of before.keys()) if (!after.has(path)) rebuild.push(`the build deleted src/${path}`);
+    if (build.length) break;
+    const produced = new Map();
+    for (const file of listFiles(join(workspace, rel, "src"))) {
+      const bytes = readFileSync(join(workspace, rel, "src", file.path));
+      if (!before.has(file.path)) produced.set(`src/${file.path}`, bytes);
+      else if (!before.get(file.path).equals(bytes)) build.push(`the build changed its own source src/${file.path}`);
     }
-  } finally {
-    restore(folder, before);
+    for (const path of before.keys()) if (!existsSync(join(workspace, rel, "src", path))) build.push(`the build deleted src/${path}`);
+    for (const path of produced.keys()) if (!pages.some(([, page]) => page === path)) build.push(`the build wrote ${path}, which is not one of its pages`);
+    for (const [key, page] of pages) if (!produced.has(page)) build.push(`the build did not write pages.${key} ${page}`);
+    builds.push(produced);
+    if (build.length) break;
   }
-  step("rebuild", rebuild);
+  if (!build.length) for (const [, page] of pages) if (!builds[0].get(page).equals(builds[1].get(page))) build.push(`${page} came out different on a second build: the build must be deterministic (no randomness, clocks or environment)`);
+  step("build", [...new Set(build)], mode === "docker" ? "built twice in the locked container, identical" : "built twice, identical");
 
-  if (figure.audit && !options.skipAudit && !rebuild.length) {
-    const audit = [];
-    try {
-      const [script, ...flags] = figure.build[0];
-      const result = run([script, ...flags.filter((f) => f !== "--light"), "--audit"], { cwd: folder, timeout: (options.auditTimeout ?? 2700) * 1000 });
-      if (result.code !== 0 || !/\baudit passed\b/.test(result.output)) audit.push(`--audit did not end with "audit passed":\n${result.output.trim().split("\n").slice(-15).join("\n")}`);
-    } finally {
-      restore(folder, before);
-    }
-    step("audit", audit);
+  const output = [];
+  if (!build.length) for (const [key, page] of pages) {
+    const bytes = builds[0].get(page);
+    if (bytes.length > LIMITS.page) output.push(`${page} is ${(bytes.length / 1048576).toFixed(1)} MB, over ${LIMITS.page >> 20} MB`);
+    const html = bytes.toString("utf8");
+    if (themeOf(html) !== key) output.push(`pages.${key} ${page} is a ${themeOf(html)} page; build it with${key === "light" ? " --light" : "out --light"}`);
+    output.push(...scanText(page, html));
+  }
+  const outputOk = !build.length && step("output", [...new Set(output)]);
+
+  if (outputOk && figure.audit && !options.skipAudit) {
+    const [script, ...flags] = figure.build[0];
+    const audit = runSandboxed({ mode, workspace: work[0], skill, cwd: rel, args: [script, ...flags.filter((f) => f !== "--light"), "--audit"], timeout: (options.auditTimeout ?? 2700) * 1000, locked: [`${rel}/src`] });
+    step("audit", audit.code === 0 && /\baudit passed\b/.test(audit.output) ? [] : [`--audit did not end with "audit passed":\n${tail(audit.output, 15)}`]);
   } else if (figure.audit) notes.push("audit: skipped");
 
-  if (!options.noBrowser && !rebuild.length) {
+  if (outputOk && !options.noBrowser) {
     const browser = [];
-    const shots = options.shots ? resolve(options.shots) : null;
-    if (shots) mkdirSync(shots, { recursive: true });
-    try {
-      for (const key of ["dark", "light"]) {
-        const page = figure.pages[key];
-        if (!page) continue;
-        const lines = run([join(skill, "scripts", "lines.mjs"), join(folder, page), "--reduced"], { cwd: folder, timeout: 180000 });
-        if (lines.code !== 0) browser.push(`line check on ${page}:\n${lines.output.trim().split("\n").slice(-10).join("\n")}`);
-        if (shots) {
-          const shot = run([join(skill, "scripts", "capture.mjs"), join(folder, page), "--reduced", "--out", join(shots, `${id}-${key}.png`)], { cwd: folder, timeout: 180000 });
-          if (shot.code !== 0) browser.push(`screenshot of ${page} failed:\n${shot.output.trim().split("\n").slice(-6).join("\n")}`);
-        }
-      }
-    } finally {
-      restore(folder, before);
+    const out = resolve(options.out ?? join(ROOT, "shots", `${author}-${id}`));
+    rmSync(out, { recursive: true, force: true });
+    mkdirSync(out, { recursive: true });
+    for (const [key, page] of pages) {
+      const target = `/work/${rel}/${page}`;
+      const lines = runSandboxed({ mode, workspace: work[0], skill, out, cwd: rel, args: ["/work/.skill/scripts/lines.mjs", target, "--reduced"], timeout: 180000 });
+      if (lines.code !== 0) browser.push(`line check on ${page} (with reduced motion):\n${tail(lines.output, 10)}`);
+      else if (!consoleClean(lines.output)) browser.push(`${page} logged errors in the browser (a blocked network request or a script error):\n${tail(lines.output, 8)}`);
+      const shot = runSandboxed({ mode, workspace: work[0], skill, out, cwd: rel, args: ["/work/.skill/scripts/capture.mjs", target, "--reduced", "--width", "1200", "--times", "1500", "--out", `/out/${key}.png`], timeout: 180000 });
+      if (shot.code !== 0) browser.push(`screenshot of ${page} failed:\n${tail(shot.output, 6)}`);
+      else if (!existsSync(join(out, `${key}.png`)) || !existsSync(join(out, `${key}-1500.png`))) browser.push(`screenshot of ${page} produced no image`);
+      else if (!readFileSync(join(out, `${key}.png`)).equals(readFileSync(join(out, `${key}-1500.png`)))) browser.push(`${page} keeps moving with reduced motion on: a figure must hold one still pose when prefers-reduced-motion is set`);
+      else rmSync(join(out, `${key}-1500.png`));
+      writeFileSync(join(out, basename(page)), builds[0].get(page));
     }
-    step("browser", browser);
+    if (existsSync(join(out, "light.png"))) cpSync(join(out, "light.png"), join(out, "poster.png"));
+    step("browser", browser, `screenshots, poster and built pages in ${relativeTo(ROOT, out) || out}`);
   } else if (options.noBrowser) notes.push("browser: skipped");
 
-  return { id, errors, notes };
+  for (const workspace of work) rmSync(workspace, { recursive: true, force: true });
+  return result();
 }
 
-const argv = process.argv.slice(2);
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const argv = process.argv.slice(2);
   if (!argv.length || argv[0].startsWith("--")) {
-    console.error("usage: node scripts/validate.mjs figures/<id> [--contributor] [--shots dir] [--no-browser] [--skip-audit]");
+    console.error("usage: node scripts/validate.mjs figures/<author>/<id> [--contributor] [--docker|--local] [--require-docker] [--out dir] [--no-browser] [--skip-audit]");
     process.exit(1);
   }
-  const at = argv.indexOf("--shots");
-  const result = validateFolder(argv[0], { contributor: argv.includes("--contributor"), noBrowser: argv.includes("--no-browser"), skipAudit: argv.includes("--skip-audit"), shots: at >= 0 ? argv[at + 1] : null });
-  console.log(`figure ${result.id}`);
-  for (const note of result.notes) console.log(`  ✓ ${note}`);
-  for (const error of result.errors) console.log(`  ✗ ${error.replace(/\n/g, "\n      ")}`);
-  if (result.stopped) console.log(`  ${result.stopped}`);
-  console.log(result.errors.length ? `failed: ${result.errors.length} problem${result.errors.length === 1 ? "" : "s"}` : "passed");
-  process.exit(result.errors.length ? 1 : 0);
+  const at = argv.indexOf("--out");
+  const sandbox = argv.includes("--docker") ? "docker" : argv.includes("--local") ? "local" : undefined;
+  const res = validateFolder(argv[0], { contributor: argv.includes("--contributor"), sandbox, requireDocker: argv.includes("--require-docker"), strict: argv.includes("--require-docker"), noBrowser: argv.includes("--no-browser"), skipAudit: argv.includes("--skip-audit"), out: at >= 0 ? argv[at + 1] : undefined });
+  console.log(`figure ${res.id}  [sandbox: ${res.mode}]`);
+  for (const note of res.notes) console.log(`  ✓ ${note}`);
+  for (const error of res.errors) console.log(`  ✗ ${error.replace(/\n/g, "\n      ")}`);
+  if (res.stopped) console.log(`  ${res.stopped}`);
+  console.log(res.errors.length ? `failed: ${res.errors.length} problem${res.errors.length === 1 ? "" : "s"}` : "passed");
+  process.exit(res.errors.length ? 1 : 0);
 }

@@ -1,24 +1,32 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { ID } from "./schema.mjs";
 
+export const AUTHOR = /^[a-z0-9](?:[a-z0-9]|-(?=[a-z0-9])){0,38}$/;
+
 export function figuresOf(paths) {
-  const ids = new Set();
+  const found = new Set();
   const bad = [];
   for (const path of paths) {
-    const match = path.match(/^figures\/([^/]+)\//);
-    if (!match) continue;
-    if (ID.test(match[1])) ids.add(match[1]);
-    else bad.push(match[1]);
+    if (!path.startsWith("figures/")) continue;
+    const match = path.match(/^figures\/([^/]+)\/([^/]+)\//);
+    if (!match) {
+      bad.push(path);
+      continue;
+    }
+    if (AUTHOR.test(match[1]) && ID.test(match[2])) found.add(`${match[1]}/${match[2]}`);
+    else bad.push(`${match[1]}/${match[2]}`);
   }
-  return { ids: [...ids].sort(), bad: [...new Set(bad)] };
+  return { ids: [...found].sort(), bad: [...new Set(bad)] };
 }
 
-const argv = process.argv.slice(2);
+const dirs = (path) => (existsSync(path) ? readdirSync(path).filter((name) => statSync(`${path}/${name}`).isDirectory()) : []);
+
 if (process.argv[1]?.endsWith("changed.mjs")) {
+  const argv = process.argv.slice(2);
   const at = argv.indexOf("--base");
   let paths;
-  if (argv.includes("--all")) paths = existsSync("figures") ? readdirSync("figures").map((name) => `figures/${name}/`) : [];
+  if (argv.includes("--all")) paths = dirs("figures").flatMap((author) => dirs(`figures/${author}`).map((id) => `figures/${author}/${id}/`));
   else if (at >= 0) paths = execFileSync("git", ["diff", "--name-only", "--no-renames", `${argv[at + 1]}...HEAD`]).toString().split("\n").filter(Boolean);
   else {
     console.error("usage: node scripts/changed.mjs --base <sha> | --all");
@@ -26,8 +34,8 @@ if (process.argv[1]?.endsWith("changed.mjs")) {
   }
   const { ids, bad } = figuresOf(paths);
   if (bad.length) {
-    console.error(`folder names must be kebab-case: ${bad.join(", ")}`);
+    console.error(`figures live at figures/<author>/<id>/, lowercase: ${bad.join(", ")}`);
     process.exit(1);
   }
-  for (const id of ids) if (existsSync(`figures/${id}`)) console.log(id);
+  for (const id of ids) if (existsSync(`figures/${id}/figure.json`)) console.log(id);
 }

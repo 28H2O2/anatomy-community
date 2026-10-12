@@ -1,68 +1,117 @@
 import assert from "node:assert/strict";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync, realpathSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
+import { dockerReady, runSandboxed } from "./sandbox.mjs";
 import { validateFolder } from "./validate.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const SEED = join(ROOT, "figures", "dial-indicator");
-const SKILL = join(ROOT, ".skill");
-const ready = existsSync(SEED) && existsSync(SKILL);
+const SEED = join(ROOT, "figures", "wheresryan22", "dial-indicator");
+const SKILL = existsSync(join(ROOT, ".skill")) ? realpathSync(join(ROOT, ".skill")) : null;
+const MODE = process.env.ANATOMY_TEST_SANDBOX ?? (dockerReady() ? "docker" : "local");
+const ready = existsSync(SEED) && SKILL;
 
-function copy(mutate) {
+function copy(mutate, author = "wheresryan22") {
   const repo = mkdtempSync(join(tmpdir(), "anatomy-community-"));
-  cpSync(SEED, join(repo, "figures", "dial-indicator"), { recursive: true });
-  symlinkSync(realpathSync(SKILL), join(repo, ".skill"), "dir");
-  const folder = join(repo, "figures", "dial-indicator");
+  const folder = join(repo, "figures", author, "dial-indicator");
+  cpSync(SEED, folder, { recursive: true });
+  symlinkSync(SKILL, join(repo, ".skill"), "dir");
+  if (author !== "wheresryan22") writeFileSync(join(folder, "figure.json"), readFileSync(join(folder, "figure.json"), "utf8"));
   mutate?.(folder, repo);
   return { folder, repo, done: () => rmSync(repo, { recursive: true, force: true }) };
 }
-const check = (folder, options = {}) => validateFolder(folder, { noBrowser: true, skill: join(folder, "..", "..", ".skill"), ...options });
+const check = (folder, options = {}) => validateFolder(folder, { sandbox: MODE, skill: SKILL, noBrowser: true, ...options });
 const edit = (path, fn) => writeFileSync(path, fn(readFileSync(path, "utf8")));
+const build = (f) => join(f, "src", "build.mjs");
+const lastWrite = (t) => t.lastIndexOf("writeFileSync(join(HERE");
 
-test("the seed figure passes", { skip: !ready }, () => {
+test(`the seed figure passes (${MODE})`, { skip: !ready }, () => {
   const { folder, done } = copy();
   try { assert.deepEqual(check(folder).errors, []); } finally { done(); }
 });
 
 const faults = [
-  ["a committed page that is not what the build makes", (f) => edit(join(f, "src", "dial-indicator.html"), (t) => t.replace("</body>", "<!-- x --></body>")), /rebuild: src\/dial-indicator\.html changed/],
-  ["a network call hidden in the build", (f) => edit(join(f, "src", "build.mjs"), (t) => t + '\nconst ping = () => fetch("https://example.org/x");\n'), /safety: .*network request \(fetch\)/],
-  ["a forbidden Node module", (f) => edit(join(f, "src", "build.mjs"), (t) => 'import { execSync } from "node:child_process";\n' + t), /safety: .*node:child_process is not allowed/],
-  ["reading environment variables", (f) => edit(join(f, "src", "build.mjs"), (t) => t + "\nconst token = process.env.GITHUB_TOKEN;\n"), /safety: .*environment variables/],
-  ["an import that leaves the folder", (f) => edit(join(f, "src", "build.mjs"), (t) => 'import "../../other/x.mjs";\n' + t), /safety: .*leaves the figure folder/],
-  ["an external script in a page", (f) => edit(join(f, "src", "dial-indicator.html"), (t) => t.replace("</head>", '<script src="https://cdn.example.com/a.js"></script></head>')), /safety: .*external address/],
+  ["a committed built page", (f) => writeFileSync(join(f, "src", "dial-indicator-light.html"), "<html></html>"), /files: src\/dial-indicator-light\.html is committed/],
+  ["a committed poster", (f) => writeFileSync(join(f, "poster.png"), "x"), /files: unexpected poster\.png/],
+  ["a network call hidden in the build", (f) => edit(build(f), (t) => t + '\nconst ping = () => fetch("https://example.org/x");\n'), /safety: .*network request \(fetch\)/],
+  ["a disguised global lookup", (f) => edit(build(f), (t) => t + '\nconst g = globalThis["fe" + "tch"];\n'), /safety: .*computed access on globalThis/],
+  ["the constructor route to eval", (f) => edit(build(f), (t) => t + '\nconst run = (() => {}).constructor;\n'), /safety: .*reaching a constructor/],
+  ["reading environment variables", (f) => edit(build(f), (t) => t + '\nconst token = process["env"];\n'), /safety: .*environment variables/],
+  ["a forbidden Node module", (f) => edit(build(f), (t) => 'import { execSync } from "node:child_process";\n' + t), /safety: .*node:child_process is not allowed/],
+  ["an import that leaves the folder", (f) => edit(build(f), (t) => 'import "../../../../other/x.mjs";\n' + t), /safety: .*leaves the figure folder/],
   ["a wrong kit fingerprint", (f) => edit(join(f, "figure.json"), (t) => t.replace(/sha256:[0-9a-f]{64}/, "sha256:" + "0".repeat(64))), /skill: \.skill has kit/],
-  ["an id that does not match the folder", (f) => edit(join(f, "figure.json"), (t) => t.replace('"id": "dial-indicator"', '"id": "dial-gauge"')), /schema: id "dial-gauge" must match/],
   ["a binary in src", (f) => writeFileSync(join(f, "src", "tool.wasm"), "x"), /files: src\/tool\.wasm: file type not allowed/],
-  ["an unexpected top-level file", (f) => writeFileSync(join(f, "notes.zip"), "x"), /files: unexpected notes\.zip/],
-  ["a light page that is really dark", (f) => edit(join(f, "src", "dial-indicator-light.html"), (t) => t.replace('<body class="iso" data-theme="light">', '<body class="iso" data-theme="dark">')), /files: pages\.light .* is a dark page/],
-  ["a poster that is not a PNG", (f) => writeFileSync(join(f, "poster.png"), "not a png"), /poster: poster\.png is not a PNG/],
-  ["a build that writes an extra file", (f) => edit(join(f, "src", "build.mjs"), (t) => t + '\nwriteFileSync(join(HERE, "extra.txt"), "x");\n'), /rebuild: the build wrote a new file src\/extra\.txt/],
+  ["a payload that only appears in the built page", (f) => edit(build(f), (t) => t.replace('k.pageHtml({ title: "Dial indicator", theme, body, script: kitScript() + live })', 'k.pageHtml({ title: "Dial indicator", theme, body, script: kitScript() + live }).replace("</head>", "<scr" + "ipt src=" + "ht" + "tps://cdn.exa" + "mple.com/x.js></scr" + "ipt></head>")')), /output: .*external address/],
+  ["a build that is not deterministic", (f) => edit(build(f), (t) => t.replace('title: "Dial indicator", theme', 'title: "Dial indicator " + Math.random(), theme')), /build: .*different on a second build/],
+  ["a build that writes an extra file", (f) => edit(build(f), (t) => t + '\nwriteFileSync(join(HERE, "extra.txt"), "x");\n'), /build: the build wrote src\/extra\.txt/],
 ];
 for (const [name, mutate, expected] of faults) test(`rejects ${name}`, { skip: !ready }, () => {
   const { folder, done } = copy(mutate);
   try {
     const result = check(folder);
-    assert.ok(result.errors.some((e) => expected.test(e)), `expected ${expected}, got:\n${result.errors.join("\n")}`);
+    assert.ok(result.errors.some((e) => expected.test(e)), `expected ${expected}, got:\n${result.errors.join("\n") || "(passed)"}`);
   } finally { done(); }
+});
+
+test("a build cannot write outside its own folder", { skip: !ready }, () => {
+  const { folder, repo, done } = copy((f) => edit(build(f), (t) => t + '\nwriteFileSync(join(HERE, "..", "..", "..", "escaped.txt"), "x");\n'));
+  try {
+    const result = check(folder);
+    assert.ok(result.errors.some((e) => /build: .*failed/.test(e)), result.errors.join("\n") || "(passed)");
+    assert.ok(!existsSync(join(repo, "figures", "wheresryan22", "escaped.txt")));
+  } finally { done(); }
+});
+
+test("a figure filed under someone else's name is rejected", { skip: !ready }, () => {
+  const { folder, done } = copy(undefined, "someone-else");
+  try { assert.ok(check(folder).errors.some((e) => /author "wheresryan22" must match the folder figures\/someone-else/.test(e))); } finally { done(); }
 });
 
 test("a contributor cannot mark a figure featured", { skip: !ready }, () => {
   const { folder, done } = copy((f) => edit(join(f, "figure.json"), (t) => t.replace('"license"', '"featured": true,\n  "license"')));
   try {
     assert.ok(check(folder, { contributor: true }).errors.some((e) => /only maintainers set featured/.test(e)));
-    assert.ok(!check(folder).errors.some((e) => /featured/.test(e)));
   } finally { done(); }
 });
 
-test("a failed check leaves the folder exactly as it was", { skip: !ready }, () => {
-  const { folder, done } = copy((f) => edit(join(f, "src", "dial-indicator.html"), (t) => t.replace("</body>", "<!-- x --></body>")));
+const sandboxed = MODE === "docker" && SKILL;
+function probe(code) {
+  const workspace = mkdtempSync(join(tmpdir(), "anatomy-probe-"));
   try {
-    const before = readFileSync(join(folder, "src", "dial-indicator.html"));
-    check(folder);
-    assert.ok(readFileSync(join(folder, "src", "dial-indicator.html")).equals(before));
-    assert.ok(!existsSync(join(folder, "src", "extra.txt")));
-  } finally { done(); }
+    mkdirSync(join(workspace, "figures", "x", "y", "src"), { recursive: true });
+    writeFileSync(join(workspace, "figures", "x", "y", "src", "probe.mjs"), code);
+    return runSandboxed({ mode: "docker", workspace, skill: SKILL, cwd: "figures/x/y", args: ["src/probe.mjs"], timeout: 120000, locked: ["figures/x/y/src"] }).output;
+  } finally {
+    rmSync(workspace, { recursive: true, force: true });
+  }
+}
+test("the sandbox has no network", { skip: !sandboxed && "needs the docker sandbox" }, () => {
+  const out = probe('import http from "node:http"; http.get("http://example.com", () => console.log("REACHED")).on("error", (e) => console.log("blocked " + e.code));');
+  assert.match(out, /blocked/);
+  assert.doesNotMatch(out, /REACHED/);
+});
+test("the sandbox blocks child processes, workers and reads outside", { skip: !sandboxed && "needs the docker sandbox" }, () => {
+  const out = probe('import cp from "node:child_process"; import fs from "node:fs"; import wt from "node:worker_threads";\nfor (const [n, f] of [["child", () => cp.execSync("id")], ["read", () => fs.readFileSync("/etc/passwd")], ["worker", () => new wt.Worker("1", { eval: true })], ["system", () => fs.writeFileSync("/usr/x", "1")]]) { try { f(); console.log("ALLOWED " + n); } catch (e) { console.log("blocked " + n); } }');
+  for (const what of ["child", "read", "worker", "system"]) assert.match(out, new RegExp(`blocked ${what}`), out);
+  assert.doesNotMatch(out, /ALLOWED/);
+});
+
+test(`the seed figure passes the browser checks (${MODE})`, { skip: !ready || (MODE === "local" && !process.env.CHROME_PATH && process.platform !== "darwin") }, () => {
+  const out = mkdtempSync(join(tmpdir(), "anatomy-out-"));
+  const { folder, done } = copy();
+  try {
+    const result = check(folder, { noBrowser: false, out });
+    assert.deepEqual(result.errors, []);
+    for (const file of ["poster.png", "light.png", "dark.png", "dial-indicator-light.html", "dial-indicator.html"]) assert.ok(existsSync(join(out, file)), file);
+  } finally { done(); rmSync(out, { recursive: true, force: true }); }
+});
+
+test(`a figure that keeps moving under reduced motion is rejected (${MODE})`, { skip: !ready || (MODE === "local" && process.platform !== "darwin") }, () => {
+  const out = mkdtempSync(join(tmpdir(), "anatomy-out-"));
+  const { folder, done } = copy((f) => edit(build(f), (t) => t.replace('k.pageHtml({ title: "Dial indicator", theme, body, script: kitScript() + live })', 'k.pageHtml({ title: "Dial indicator", theme, body, script: kitScript() + live }).replace("</head>", "<style>@keyframes spin{to{transform:rotate(360deg)}}.iso-plate svg{animation:spin 3s linear infinite}</style></head>")')));
+  try {
+    const result = check(folder, { noBrowser: false, out });
+    assert.ok(result.errors.some((e) => /keeps moving with reduced motion/.test(e)), result.errors.join("\n") || "(passed)");
+  } finally { done(); rmSync(out, { recursive: true, force: true }); }
 });

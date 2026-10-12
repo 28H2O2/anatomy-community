@@ -14,16 +14,17 @@ const KEYS = ["id", "title", "author", "prompt", "kind", "agent", "model", "skil
 const text = (value, max) => typeof value === "string" && value.trim() === value && value.length > 0 && value.length <= max;
 const safePath = (value) => typeof value === "string" && SOURCE_PATH.test(value) && !value.split("/").includes("..");
 
-export function validateFigure(figure, folderName) {
+export function validateFigure(figure, where = {}) {
   const errors = [];
   const fail = (message) => errors.push(message);
   if (!figure || typeof figure !== "object" || Array.isArray(figure)) return ["figure.json must be an object"];
   for (const key of Object.keys(figure)) if (!KEYS.includes(key)) fail(`unknown field "${key}"`);
 
   if (!ID.test(figure.id ?? "") || figure.id.length > 64) fail("id must be kebab-case, at most 64 characters");
-  else if (folderName !== undefined && figure.id !== folderName) fail(`id "${figure.id}" must match the folder name "${folderName}"`);
+  else if (where.id !== undefined && figure.id !== where.id) fail(`id "${figure.id}" must match the folder name "${where.id}"`);
   if (!text(figure.title, 80)) fail("title is required, at most 80 characters, no surrounding spaces");
   if (!GITHUB.test(figure.author ?? "")) fail("author must be a GitHub username");
+  else if (where.author !== undefined && figure.author.toLowerCase() !== where.author.toLowerCase()) fail(`author "${figure.author}" must match the folder figures/${where.author}/`);
   if (!text(figure.prompt, 600)) fail("prompt is required, at most 600 characters: the request that made the figure");
   if (!KINDS.includes(figure.kind)) fail(`kind must be one of: ${KINDS.join(", ")}`);
   if (!AGENTS.includes(figure.agent)) fail(`agent must be one of: ${AGENTS.join(", ")}`);
