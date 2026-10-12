@@ -1,0 +1,114 @@
+[
+ [
+  0.2,
+  6.6,
+  "",
+  "The click pen",
+  "Click: tip out. Click: tip in. How does it remember?"
+ ],
+ [
+  6.6,
+  9.2,
+  "LOOK INSIDE",
+  "A 12× model",
+  "Below it: the same parts, unrolled flat."
+ ],
+ [
+  9.2,
+  12.3,
+  "PART 1",
+  "The ribs (teal)",
+  "Fixed in the barrel. Their slopes end in a pocket or a gap, taking turns."
+ ],
+ [
+  12.3,
+  15.9,
+  "PART 2",
+  "The button (orange)",
+  "Its bottom edge is a ring of slanted saw teeth."
+ ],
+ [
+  15.9,
+  19.5,
+  "PART 3",
+  "The cam (gold)",
+  "Carries the ink refill. The spring pushes it up. Follow the red lug."
+ ],
+ [
+  19.5,
+  22.1,
+  "STEP 1",
+  "Press",
+  "The button pushes the cam down, below the ribs."
+ ],
+ [
+  22.1,
+  25.3,
+  "STEP 2",
+  "Turn",
+  "The slanted teeth push the lug half a step sideways."
+ ],
+ [
+  25.3,
+  28.4,
+  "STEP 3",
+  "Release",
+  "The spring pushes the cam up. The rib slope slides it the other half step."
+ ],
+ [
+  28.4,
+  33.5,
+  "STEP 4",
+  "Lock: tip out",
+  "The lug stops in the pocket and stays down. Tip out."
+ ],
+ [
+  33.5,
+  36.1,
+  "STEP 1",
+  "Press again",
+  "Down below the ribs again."
+ ],
+ [
+  36.1,
+  39.3,
+  "STEP 2",
+  "Turn",
+  "The teeth: half a step again."
+ ],
+ [
+  39.3,
+  41.4,
+  "STEP 3",
+  "Release",
+  "The slope: the other half. Now the lug is under a gap..."
+ ],
+ [
+  41.4,
+  47.6,
+  "STEP 4",
+  "Up the gap: tip in",
+  "...so the spring pushes it all the way up. Tip in."
+ ],
+ [
+  47.6,
+  57.9,
+  "FULL SPEED",
+  "Pocket, gap, pocket, gap",
+  "Every click turns the cam 1/8 of a turn."
+ ],
+ [
+  57.9,
+  61.7,
+  "RECAP",
+  "Pocket = tip out",
+  "Press + release: the lug stops in a pocket."
+ ],
+ [
+  61.7,
+  66,
+  "RECAP",
+  "Gap = tip in",
+  "Next click it rises up a gap. That's the whole trick."
+ ]
+]
