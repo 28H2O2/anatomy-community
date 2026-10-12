@@ -155,10 +155,10 @@ export function validateFolder(folderArg, options = {}) {
       for (const key of ["dark", "light"]) {
         const page = figure.pages[key];
         if (!page) continue;
-        const lines = run([join(skill, "scripts", "lines.mjs"), join(folder, page)], { cwd: folder, timeout: 180000 });
+        const lines = run([join(skill, "scripts", "lines.mjs"), join(folder, page), "--reduced"], { cwd: folder, timeout: 180000 });
         if (lines.code !== 0) browser.push(`line check on ${page}:\n${lines.output.trim().split("\n").slice(-10).join("\n")}`);
         if (shots) {
-          const shot = run([join(skill, "scripts", "capture.mjs"), join(folder, page), "--out", join(shots, `${id}-${key}.png`)], { cwd: folder, timeout: 180000 });
+          const shot = run([join(skill, "scripts", "capture.mjs"), join(folder, page), "--reduced", "--out", join(shots, `${id}-${key}.png`)], { cwd: folder, timeout: 180000 });
           if (shot.code !== 0) browser.push(`screenshot of ${page} failed:\n${shot.output.trim().split("\n").slice(-6).join("\n")}`);
         }
       }

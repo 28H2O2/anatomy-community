@@ -30,7 +30,7 @@ Thank you for sharing one. A figure here is a real, working object that explains
    node scripts/validate.mjs figures/<id>
    ```
 
-   It has to end with `passed`. It runs the same checks as CI, except that CI fetches the exact skill version from GitHub.
+   It has to end with `passed`. The line check runs with reduced motion, so your figure must hold a still pose when `prefers-reduced-motion` is set, as the skill asks. It runs the same checks as CI, except that CI fetches the exact skill version from GitHub.
 5. **Open a pull request.** The publish script prints the commands.
 
 ## figure.json
