@@ -90,7 +90,8 @@ jobs:
       - name: Tell the submitter
         env:
           PR: ${{ steps.pr.outputs.number }}
-        run: gh issue comment "$NUMBER" -R "$REPO" --body "Thanks @$AUTHOR. Your figure is in pull request #$PR. The checks are running there, and a preview of your figure will appear on it when they finish. Edit this issue to send an updated version."
+        run: |
+          gh issue comment "$NUMBER" -R "$REPO" --body "Thanks @$AUTHOR. Your figure is in pull request #$PR. The checks are running there, and a preview of your figure will appear on it when they finish. Edit this issue to send an updated version."
 
       - name: Explain what went wrong
         if: failure() && hashFiles('problems.md') != ''
