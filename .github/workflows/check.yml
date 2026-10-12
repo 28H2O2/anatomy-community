@@ -82,6 +82,12 @@ jobs:
           done < figures.txt
           exit $status
 
+      - name: Pull request number for the preview comment
+        if: always() && github.event_name == 'pull_request'
+        env:
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: mkdir -p built && echo "$NUMBER" > built/pr.txt
+
       - name: Built pages, posters and screenshots
         if: always()
         uses: actions/upload-artifact@v4

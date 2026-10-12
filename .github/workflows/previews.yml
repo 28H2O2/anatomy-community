@@ -1,0 +1,110 @@
+name: Previews
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: previews-branch
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build previews in the sandbox
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.23.3
+
+      - name: Parser for the code analysis
+        run: |
+          npm install --prefix "$RUNNER_TEMP/tools" --no-audit --no-fund --ignore-scripts --no-save acorn@8.19.0
+          echo "NODE_PATH=$RUNNER_TEMP/tools/node_modules" >> "$GITHUB_ENV"
+
+      - name: Build the locked sandbox
+        run: docker build --platform linux/amd64 -t anatomy-sandbox:local sandbox
+
+      - name: Figures to preview
+        env:
+          BEFORE: ${{ github.event.before }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] && gh api "repos/$REPO/branches/previews" > /dev/null 2>&1; then
+            node scripts/changed.mjs --base "$BEFORE" > figures.txt
+          else
+            node scripts/changed.mjs --all > figures.txt
+          fi
+          echo "Figures: $(tr '\n' ' ' < figures.txt)"
+
+      - name: Build each figure and make its preview
+        run: |
+          while read -r id; do
+            [ -n "$id" ] || continue
+            echo "::group::$id"
+            if node scripts/skill.mjs "figures/$id" && node scripts/validate.mjs "figures/$id" --docker --require-docker --skip-audit --out "built/$id"; then
+              docker run --rm --platform linux/amd64 --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user "$(id -u):$(id -g)" -v "$PWD/built/$id:/out:rw" anatomy-sandbox:local cwebp -quiet -q 82 -resize 1200 0 /out/poster.png -o /out/preview.webp
+            else
+              echo "::warning::$id did not build; its preview is left as it was"
+            fi
+            echo "::endgroup::"
+          done < figures.txt
+          node -e 'const fs=require("fs");const out=[];for(const a of fs.existsSync("figures")?fs.readdirSync("figures"):[])for(const i of fs.readdirSync(`figures/${a}`)){try{out.push(JSON.parse(fs.readFileSync(`figures/${a}/${i}/figure.json`,"utf8")))}catch{}}fs.mkdirSync("built",{recursive:true});fs.writeFileSync("built/figures.json",JSON.stringify(out))'
+          find built -type f ! -name preview.webp ! -name figures.json -delete
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: previews
+          path: built/
+          retention-days: 7
+
+  publish:
+    name: Publish to the previews branch
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Trusted scripts, from main
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.23.3
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: previews
+          path: incoming
+
+      - name: Update the previews branch
+        run: |
+          git init -q branch
+          cd branch
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          if git fetch -q --depth 1 origin previews; then git checkout -q FETCH_HEAD; fi
+          cd ..
+          node scripts/previews.mjs --artifact incoming --branch branch --figures incoming/figures.json --repo "$REPO"
+          cd branch
+          git checkout -q --orphan next
+          git add -A
+          git commit -q -m "Previews of every figure on main"
+          git push -q -f origin next:previews

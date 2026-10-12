@@ -74,3 +74,44 @@ const backdoors = {
 };
 for (const [name, code] of Object.entries(backdoors)) test(`the code analysis catches ${name}`, { skip: !acorn && "acorn not installed" }, () => assert.ok(analyzeSource("t.mjs", code, acorn).length > 0));
 for (const [name, code] of Object.entries({ "a local named fetch": "const fetch = (x) => x; fetch(1);", "process.argv": 'const light = process.argv.includes("--light");', "toString": "const s = f.toString();", "reading location.hash": "const h = location.hash;" })) test(`the code analysis allows ${name}`, { skip: !acorn && "acorn not installed" }, () => assert.deepEqual(analyzeSource("t.mjs", code, acorn), []));
+
+import { deflateSync } from "node:zlib";
+import { changedFraction } from "./png.mjs";
+import { escapeText, indexMarkdown, isWebp, checkPoster } from "./previews.mjs";
+import { commentBody, MARKER } from "./pr-preview.mjs";
+
+function png(width, height, pixel) {
+  const crcTable = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+  const crc = (buf) => { let c = 0xffffffff; for (const b of buf) c = crcTable[(c ^ b) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  const chunk = (type, data) => { const len = Buffer.alloc(4); len.writeUInt32BE(data.length); const body = Buffer.concat([Buffer.from(type), data]); const sum = Buffer.alloc(4); sum.writeUInt32BE(crc(body)); return Buffer.concat([len, body, sum]); };
+  const head = Buffer.alloc(13); head.writeUInt32BE(width, 0); head.writeUInt32BE(height, 4); head[8] = 8; head[9] = 2;
+  const rows = [];
+  for (let y = 0; y < height; y++) { rows.push(0); for (let x = 0; x < width; x++) rows.push(...pixel(x, y)); }
+  return Buffer.concat([Buffer.from("89504e470d0a1a0a", "hex"), chunk("IHDR", head), chunk("IDAT", deflateSync(Buffer.from(rows))), chunk("IEND", Buffer.alloc(0))]);
+}
+
+test("holding still ignores GPU noise but catches motion", () => {
+  const base = png(300, 200, () => [200, 200, 200]);
+  const noise = png(300, 200, (x, y) => (x === 10 && y === 10 ? [208, 200, 200] : [200, 200, 200]));
+  const moved = png(300, 200, (x) => (x < 30 ? [20, 20, 20] : [200, 200, 200]));
+  assert.equal(changedFraction(base, noise).changed, 0);
+  assert.ok(changedFraction(base, moved).fraction > 0.05);
+});
+
+test("posters must be real PNGs of a sane size", () => {
+  assert.equal(checkPoster(png(300, 200, () => [1, 2, 3])), null);
+  assert.match(checkPoster(Buffer.from("not a png")), /not a PNG/);
+  assert.match(checkPoster(png(100, 100, () => [1, 2, 3])), /outside the expected size/);
+  assert.ok(isWebp(Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBPVP8 ")])));
+  assert.ok(!isWebp(Buffer.from("<svg onload=alert(1)>")));
+});
+
+test("titles cannot inject links, images or HTML into the index or comments", () => {
+  const evil = '<img src=x onerror=alert(1)> [click](https://evil) ![x](https://t)';
+  const md = indexMarkdown([{ ...good, title: evil, author: "octo-cat" }], { repo: "o/r" });
+  assert.doesNotMatch(md, /<img src=x|\]\(https:\/\/evil|!\[x\]/);
+  assert.equal(escapeText("a|b"), "a&#124;b");
+  const body = commentBody({ number: 7, found: [{ author: "octo-cat", id: "token-bucket" }], conclusion: "success", runUrl: "https://github.com/o/r/actions/runs/1", repo: "o/r" });
+  assert.ok(body.startsWith(MARKER));
+  assert.match(body, /raw\/pr-previews\/pr\/7\/octo-cat\/token-bucket\.png/);
+});

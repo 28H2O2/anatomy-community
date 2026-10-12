@@ -36,7 +36,7 @@ Thank you for sharing one. A figure here is a real, working object that explains
    ```
 
    It has to end with `passed`. Without Docker it still runs, but the build isn't network-isolated, and the code analysis needs `acorn` on `NODE_PATH`; CI runs everything. The built pages, the poster and screenshots go to `shots/<author>-<id>/`.
-5. **Open a pull request.** The publish script prints the commands.
+5. **Open a pull request.** The publish script prints the commands. After the checks run, a comment on your pull request shows the preview CI made of your figure.
 
 ## figure.json
 

@@ -15,6 +15,13 @@ figures/<author>/<id>/
 
 There are no built pages or posters in the repository. Every figure rebuilds byte for byte from its source with the exact skill version it was made with, so CI builds the pages and the poster itself. That keeps the repository small: a figure is usually 10–100 KB of source.
 
+## Previews
+
+Every figure gets a preview image, made by CI from the figure it actually built, never supplied by the contributor:
+
+- **On every pull request,** a comment shows the preview of each figure in it, with whether the checks passed.
+- **After every merge,** the [`previews` branch](../../tree/previews) holds a small WebP of each figure on `main` and an index page of all of them. That branch keeps no history, so the repository doesn't grow with it.
+
 ## Add your figure
 
 Make a figure with the Anatomy skill, then ask your agent to publish it, or run the skill's script yourself:
