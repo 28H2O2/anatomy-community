@@ -76,7 +76,7 @@ jobs:
           if [ -n "$id" ]; then gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@out/comment.md > /dev/null; else gh api "repos/$REPO/issues/$NUMBER/comments" -F body=@out/comment.md > /dev/null; fi
 
   cleanup:
-    name: Remove previews of a closed pull request
+    name: Clean up after a closed pull request
     if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -84,7 +84,15 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
       NUMBER: ${{ github.event.pull_request.number }}
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
     steps:
+      - name: Delete the submission branch
+        run: |
+          case "$HEAD_REF" in submission/[0-9]*) ;; *) exit 0;; esac
+          [ "$HEAD_REPO" = "$REPO" ] || exit 0
+          gh api -X DELETE "repos/$REPO/git/refs/heads/$HEAD_REF" > /dev/null 2>&1 || echo "already gone"
+
       - name: Drop pr/<number> from the pr-previews branch
         run: |
           git init -q branch && cd branch

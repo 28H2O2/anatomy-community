@@ -107,6 +107,7 @@ Your own work, in your own folder, under MIT or CC-BY-4.0. A real object built f
 
 - Protect `main`: require a pull request with a review, and require the **Scope** and **Check figures** checks.
 - In Actions settings: require approval before workflows run for outside contributors, and allow GitHub Actions to create pull requests (the form's bot opens them).
+- Turn on "Automatically delete head branches" (Settings → General), so merged branches go away; submission branches are deleted by CI when their pull request closes.
 - The form needs a `submission` label: `gh label create submission -R wheresryan22/anatomy-community --color 0E8A16 --description "Figure submitted through the form"`.
 - The **Previews** workflow can be run by hand (Actions → Previews → Run workflow) to rebuild every preview.
 
