@@ -65,7 +65,12 @@ export function figureFromGist({ fields, gist, author, kit, commit, date }) {
     }
   }
   if (total > LIMITS.total) problems.push("the files add up to more than 2 MB");
-  if (!files.has("build.mjs")) problems.push("the gist needs a build.mjs");
+  const scripts = [...files.keys()].filter((name) => name.endsWith(".mjs"));
+  if (!files.has("build.mjs") && scripts.length === 1) {
+    files.set("build.mjs", files.get(scripts[0]));
+    files.delete(scripts[0]);
+  }
+  if (!files.has("build.mjs")) problems.push("the gist needs a build.mjs (or exactly one .mjs file, which is used as build.mjs)");
   const source = [...files.values()].join("\n");
   const tags = (fields.tags ?? "").split(",").map((t) => t.trim().toLowerCase().replace(/\s+/g, "-")).filter(Boolean);
   const figure = {

@@ -207,6 +207,9 @@ test("a gist becomes a figure, and unsafe gists are refused", () => {
   refuse({ owner: { login: "someone" } }, /must be one of your own gists/);
   refuse({ files: { "build.mjs": { truncated: true } } }, /too large/);
   refuse({ files: { ...gist.files, "page.html": { content: "<html>" } } }, /leave the built pages out/);
-  refuse({ files: { "other.mjs": { content: "1" } } }, /needs a build\.mjs/);
+  refuse({ files: { "one.mjs": { content: "1" }, "two.mjs": { content: "2" } } }, /needs a build\.mjs/);
+  const renamed = figureFromGist({ fields, author: "octo-cat", kit: "sha256:" + "a".repeat(64), date: "2026-10-12", gist: { owner: { login: "octo-cat" }, files: { "my-figure.mjs": { content: "1" } } } });
+  assert.deepEqual(renamed.problems, []);
+  assert.deepEqual([...renamed.files.keys()], ["build.mjs"]);
   refuse({ files: { ...gist.files, "tool.wasm": { content: "x" } } }, /only \.mjs/);
 });
