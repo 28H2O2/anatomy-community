@@ -1,0 +1,30 @@
+{
+  "id": "geneva-drive",
+  "title": "Geneva drive film advance",
+  "author": "nader0913",
+  "prompt": "/anatomy explain how a Geneva drive turns continuous rotation into intermittent motion, as a film projector's frame advance",
+  "kind": "SVG",
+  "agent": "Other",
+  "model": "claude-opus-5-5",
+  "skill": {
+    "kit": "sha256:88e307d515b00831262bb91c32be1c68e4c7d93e3f898f9cea8cfa7ee84ff425"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ]
+  ],
+  "pages": {
+    "light": "src/geneva-light.html"
+  },
+  "preview": "light",
+  "license": "MIT",
+  "tags": [
+    "mechanism",
+    "gears",
+    "intermittent",
+    "film"
+  ],
+  "created": "2026-10-12"
+}
