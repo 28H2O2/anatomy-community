@@ -305,3 +305,11 @@ test("the feed stays in small files however many figures there are", async () =>
   assert.ok(files.get("feed/search.json").figures.every((f) => f.snippet.length <= 160));
   assert.equal(files.get(`feed/figures/author-0/figure-0.json`).prompt.length, 600);
 });
+
+test("token bands split the gallery into thirds once there are enough figures", async () => {
+  const { tokenBands, BAND_MIN } = await import("./previews.mjs");
+  assert.equal(tokenBands([{ tokens: 5 }, { tokens: 9 }]), null);
+  const nine = [100, 200, 300, 400, 500, 600, 700, 800, 900].map((tokens) => ({ tokens }));
+  assert.deepEqual(tokenBands([...nine, { tokens: null }, {}]), [400, 700]);
+  assert.ok(BAND_MIN >= 3);
+});

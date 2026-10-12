@@ -65,6 +65,14 @@ export function indexPages(figuresIn, { repo }) {
 export const FEED_PAGE = 48;
 export const SNIPPET = 160;
 export const FEED_TAGS = 50;
+export const BAND_MIN = 6;
+
+export function tokenBands(figures) {
+  const spent = figures.map((f) => f.tokens).filter((t) => Number.isInteger(t) && t > 0).sort((a, b) => a - b);
+  if (spent.length < BAND_MIN) return null;
+  const at = (q) => spent[Math.min(spent.length - 1, Math.floor(q * spent.length))];
+  return [at(1 / 3), at(2 / 3)];
+}
 
 const kindFlags = (kind) => ({ svg: kind === "SVG", webgl: kind.includes("WebGL"), "3d": kind.includes("3D") });
 
@@ -103,6 +111,7 @@ export function feedFiles(figuresIn, { branch, updated = new Date().toISOString(
     models: new Set(figures.map((f) => f.model).filter(Boolean)).size,
     kinds,
     tags: [...tags].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, FEED_TAGS),
+    tokenBands: tokenBands(figures),
   });
   for (let page = 1; page <= pages; page++) files.set(`feed/page-${page}.json`, { page, pages, figures: cards.slice((page - 1) * FEED_PAGE, page * FEED_PAGE) });
   files.set("feed/search.json", { figures: cards });
