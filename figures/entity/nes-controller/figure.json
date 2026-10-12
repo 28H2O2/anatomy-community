@@ -1,0 +1,34 @@
+{
+  "id": "nes-controller",
+  "title": "NES controller",
+  "author": "entity",
+  "prompt": "An NES controller with the shell cut away: press a button, its rubber dome closes the carbon contact, and each poll the 4021 shift register sends all eight buttons down the cord one bit at a time, A, B, Select, Start, Up, Down, Left, Right.",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/nes-controller-light.html",
+    "dark": "src/nes-controller.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "retro",
+    "games",
+    "electronics"
+  ],
+  "created": "2026-10-12"
+}
