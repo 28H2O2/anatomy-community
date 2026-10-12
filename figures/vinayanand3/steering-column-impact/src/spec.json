@@ -1,0 +1,45 @@
+{
+  "_source": "Excerpt of spec/steering_spec.json from github.com/vinayanand3/steering-system-explorer (derived by spec/derive.py). Only the fields the figure reads.",
+  "column": {
+    "axis_angle_from_horizontal_deg": 40.0,
+    "tilt_range_deg": 10.0,
+    "tilt_detents": 5,
+    "tilt_step_deg": 2.5,
+    "telescope_range_mm": 55.0,
+    "ea_collapse_stroke_mm": 80.0,
+    "length_hub_to_ujoint1_mm": 450.0,
+    "stations_from_hub_mm": {
+      "head_top": 40.0,
+      "tilt_pivot": 150.0,
+      "head_bottom": 152.0,
+      "slider_top": 160.0,
+      "slider_bottom": 310.0,
+      "lower_jacket_top": 230.0,
+      "lower_jacket_bottom": 405.0,
+      "lower_shaft_top": 200.0,
+      "sleeve_bottom": 290.0,
+      "lower_bearing": 380.0,
+      "ip_bracket": 275.0,
+      "ea_absorber": 300.0
+    },
+    "wheel_centre_mm": [
+      -695.7432889100963,
+      380.0,
+      1254.7153982450154
+    ]
+  },
+  "inputs": {
+    "W9_steering_wheel_diameter_mm": 380.0,
+    "rim_section_radius_mm": 16.0
+  },
+  "intermediate_shaft": {
+    "beta1_deg": 30.362183718574947
+  },
+  "driver_package_j1100": {
+    "SgRP_mm": [
+      -1650.0,
+      380.0,
+      1000.0
+    ]
+  }
+}

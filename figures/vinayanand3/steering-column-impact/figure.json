@@ -1,0 +1,37 @@
+{
+  "id": "steering-column-impact",
+  "title": "Steering Column Impact Test",
+  "author": "vinayanand3",
+  "prompt": "Install the Anatomy skill and use it to improve my steering column. Then: fix the drawing to follow the industry standards by rebuilding it as the regulatory test.",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "model": "Claude Opus 5.5",
+  "skill": {
+    "kit": "sha256:6a7a98669b0f0aba6c537ca3094326473a2f4635faa4cdf7ce75f313f6c6fd46",
+    "commit": "4517ee77f4a6f575d2850e876a19389920db86f5"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "dark": "src/steering-column-impact.html",
+    "light": "src/steering-column-impact-light.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "automotive",
+    "steering",
+    "crash-test",
+    "fmvss-203",
+    "mechanism"
+  ],
+  "created": "2026-10-12"
+}
