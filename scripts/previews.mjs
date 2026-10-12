@@ -73,6 +73,8 @@ export function feedOf(figures, { branch }) {
       kind: f.kind,
       agent: f.agent,
       model: f.model ?? null,
+      minutes: f.minutes ?? null,
+      tokens: f.tokens ?? null,
       tags: f.tags ?? [],
       license: f.license,
       created: f.created,

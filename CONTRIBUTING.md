@@ -51,6 +51,8 @@ Thank you for sharing one. A figure here is a real, working object that explains
 | `kind` | yes | `SVG`, `SVG + WebGL`, `SVG + 3D` or `SVG + WebGL + 3D` |
 | `agent` | yes | `Claude Code`, `OpenCode`, `Codex` or `Other` |
 | `model` | yes, for new figures | the model that drew it, like `Claude Opus 5.5`; the gallery shows it with its maker's mark |
+| `minutes` | no | about how long the agent worked on it, in whole minutes, like `45`; the gallery shows it as the time to make |
+| `tokens` | no | about how many tokens the agent used to make it, as a whole number, like `1200000`; the gallery shows it as 1.2M |
 | `skill.kit` | yes | the kit fingerprint, written by the publish script |
 | `skill.commit` | no | a skill commit with that kit, to skip the search |
 | `build` | yes | 1 to 4 commands, each like `["src/build.mjs", "--light"]` |

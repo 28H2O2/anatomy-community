@@ -4,7 +4,7 @@ import { AUTHOR } from "./changed.mjs";
 import { isSourceType } from "./safety.mjs";
 import { ID, validateFigure } from "./schema.mjs";
 
-const FIELDS = { "Gist link": "gist", "Figure id": "id", Title: "title", Prompt: "prompt", Agent: "agent", Model: "model", License: "license", Tags: "tags", "Your own work": "own" };
+const FIELDS = { "Gist link": "gist", "Figure id": "id", Title: "title", Prompt: "prompt", Agent: "agent", Model: "model", "Time to make": "time", "Tokens spent": "tokens", License: "license", Tags: "tags", "Your own work": "own" };
 export const GIST = /^https:\/\/gist\.github\.com\/([A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38})\/([0-9a-f]{20,40})\/?$/;
 const LIMITS = { file: 1 << 20, total: 2 << 20, files: 40 };
 
@@ -21,12 +21,32 @@ export function parseIssue(body) {
   return fields;
 }
 
+export function parseMinutes(text) {
+  const value = (text ?? "").trim().toLowerCase();
+  if (!value) return null;
+  if (/^\d+$/.test(value)) return Number(value);
+  const match = value.match(/^(?:(\d+(?:[.,]\d+)?)\s*(?:h|hr|hrs|hours?))?\s*(?:(\d+)\s*(?:m|min|mins|minutes?))?$/);
+  if (!match || (!match[1] && !match[2])) return undefined;
+  return Math.round(Number((match[1] ?? "0").replace(",", ".")) * 60 + Number(match[2] ?? 0)) || undefined;
+}
+
+export function parseTokens(text) {
+  const value = (text ?? "").trim().toLowerCase().replace(/[\s,_]/g, "").replace(/tokens?$/, "");
+  if (!value) return null;
+  const match = value.match(/^(\d+(?:\.\d+)?)([km]?)$/);
+  if (!match) return undefined;
+  const tokens = Math.round(Number(match[1]) * (match[2] === "m" ? 1e6 : match[2] === "k" ? 1e3 : 1));
+  return tokens >= 1 && tokens <= 1e10 ? tokens : undefined;
+}
+
 export function checkRequest(fields) {
   const problems = [];
   const gist = (fields.gist ?? "").match(GIST);
   if (!gist) problems.push("the gist link must look like https://gist.github.com/your-name/0123456789abcdef0123");
   if (!ID.test(fields.id ?? "") || fields.id.length > 64) problems.push("the figure id must be lowercase words joined by dashes, like token-bucket-bench");
   if (!(fields.model ?? "").trim()) problems.push("please say which model drew it, like Claude Opus 5.5");
+  if (parseMinutes(fields.time) === undefined) problems.push("the time to make should look like 45 min, 2 h or 1 h 30 min");
+  if (parseTokens(fields.tokens) === undefined) problems.push("the tokens spent should look like 450k, 1.2M or 380000");
   if (!/^- \[[xX]\] /m.test(fields.own ?? "")) problems.push("please tick that the figure is your own work");
   return { problems, gistOwner: gist?.[1], gistId: gist?.[2] };
 }
@@ -82,6 +102,8 @@ export function figureFromGist({ fields, gist, author, kit, commit, date }) {
     kind: detectKind(source),
     agent: fields.agent,
     ...(fields.model ? { model: fields.model.trim() } : {}),
+    ...(parseMinutes(fields.time) ? { minutes: parseMinutes(fields.time) } : {}),
+    ...(parseTokens(fields.tokens) ? { tokens: parseTokens(fields.tokens) } : {}),
     skill: { kit, ...(commit ? { commit } : {}) },
     build: /--light/.test(files.get("build.mjs") ?? "") ? [["src/build.mjs", "--light"], ["src/build.mjs"]] : [["src/build.mjs"]],
     license: fields.license,

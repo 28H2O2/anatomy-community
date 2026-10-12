@@ -17,6 +17,32 @@ test("the fingerprint is stable, order-free and limited to the kit", () => {
 });
 
 test("a complete figure.json passes the schema", () => assert.deepEqual(validateFigure(good, { author: "octo-cat", id: "token-bucket" }), []));
+test("the time to make is read as minutes", async () => {
+  const { parseMinutes } = await import("./submit.mjs");
+  assert.equal(parseMinutes(""), null);
+  assert.equal(parseMinutes("45"), 45);
+  assert.equal(parseMinutes("45 min"), 45);
+  assert.equal(parseMinutes("2h"), 120);
+  assert.equal(parseMinutes("1 h 30 min"), 90);
+  assert.equal(parseMinutes("1.5 hours"), 90);
+  assert.equal(parseMinutes("ages"), undefined);
+  assert.deepEqual(validateFigure({ ...good, minutes: 45 }), []);
+  assert.ok(validateFigure({ ...good, minutes: 0 }).some((e) => /minutes/.test(e)));
+  assert.ok(validateFigure({ ...good, minutes: 4.5 }).some((e) => /minutes/.test(e)));
+});
+
+test("tokens spent are read as a whole number", async () => {
+  const { parseTokens } = await import("./submit.mjs");
+  assert.equal(parseTokens(""), null);
+  assert.equal(parseTokens("380000"), 380000);
+  assert.equal(parseTokens("450k"), 450000);
+  assert.equal(parseTokens("1.2M tokens"), 1200000);
+  assert.equal(parseTokens("1,250,000"), 1250000);
+  assert.equal(parseTokens("lots"), undefined);
+  assert.deepEqual(validateFigure({ ...good, tokens: 1200000 }), []);
+  assert.ok(validateFigure({ ...good, tokens: -5 }).some((e) => /tokens/.test(e)));
+});
+
 test("outside contributors must name the model", () => {
   assert.ok(validateFigure(good, { requireModel: true }).some((e) => /model is required/.test(e)));
   assert.deepEqual(validateFigure({ ...good, model: "Claude Opus 5.5" }, { requireModel: true }), []);

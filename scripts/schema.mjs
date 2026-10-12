@@ -9,7 +9,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TAG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SOURCE_PATH = /^src\/(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/;
 
-const KEYS = ["id", "title", "author", "prompt", "kind", "agent", "model", "skill", "build", "pages", "preview", "audit", "license", "tags", "created", "featured"];
+const KEYS = ["id", "title", "author", "prompt", "kind", "agent", "model", "minutes", "tokens", "skill", "build", "pages", "preview", "audit", "license", "tags", "created", "featured"];
 const PAGE_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 const text = (value, max) => typeof value === "string" && value.trim() === value && value.length > 0 && value.length <= max;
@@ -31,6 +31,8 @@ export function validateFigure(figure, where = {}) {
   if (!AGENTS.includes(figure.agent)) fail(`agent must be one of: ${AGENTS.join(", ")}`);
   if (figure.model === undefined && where.requireModel) fail('model is required: the model that drew the figure, like "Claude Opus 5.5"');
   else if (figure.model !== undefined && !text(figure.model, 60)) fail("model is at most 60 characters");
+  if (figure.minutes !== undefined && !(Number.isInteger(figure.minutes) && figure.minutes >= 1 && figure.minutes <= 6000)) fail("minutes, if given, is a whole number of minutes it took to make, 1 to 6000");
+  if (figure.tokens !== undefined && !(Number.isInteger(figure.tokens) && figure.tokens >= 1 && figure.tokens <= 10_000_000_000)) fail("tokens, if given, is a whole number of tokens the agent used, up to 10 billion");
 
   const skill = figure.skill;
   if (!skill || typeof skill !== "object" || Array.isArray(skill)) fail("skill must be an object with kit (and optionally commit)");

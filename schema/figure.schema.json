@@ -12,6 +12,8 @@
     "kind": { "enum": ["SVG", "SVG + WebGL", "SVG + 3D", "SVG + WebGL + 3D"] },
     "agent": { "enum": ["Claude Code", "OpenCode", "Codex", "Other"] },
     "model": { "type": "string", "minLength": 1, "maxLength": 60 },
+    "minutes": { "type": "integer", "minimum": 1, "maximum": 6000 },
+    "tokens": { "type": "integer", "minimum": 1, "maximum": 10000000000 },
     "skill": {
       "type": "object",
       "additionalProperties": false,
