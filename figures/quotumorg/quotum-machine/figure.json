@@ -1,0 +1,31 @@
+{
+  "id": "quotum-machine",
+  "title": "The quotum machine",
+  "author": "quotumorg",
+  "prompt": "A bench that shows how a seat on quotum works. A hopper at the back collects the trading tax all day and a trough carries it to a sight glass. A rack of a hundred pegs holds the seats, the lit ones live. A dial reads today's cap per seat. A bell hangs from a gallows with a rope to a lever. Under the bell a brazier: at 20:00 UTC the bell rings, what the seats left unspent drains from the glass into the brazier and burns.",
+  "kind": "SVG + WebGL",
+  "agent": "Claude Code",
+  "model": "claude-fable-5-1",
+  "skill": {
+    "kit": "sha256:88e307d515b00831262bb91c32be1c68e4c7d93e3f898f9cea8cfa7ee84ff425"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ]
+  ],
+  "pages": {
+    "light": "src/quotum-machine.html"
+  },
+  "preview": "light",
+  "license": "MIT",
+  "tags": [
+    "quotum",
+    "bell",
+    "burn",
+    "isometric",
+    "webgl"
+  ],
+  "created": "2026-10-13"
+}
