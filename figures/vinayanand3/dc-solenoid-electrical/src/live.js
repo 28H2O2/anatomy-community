@@ -2,7 +2,7 @@
 // ---------- page runtime: one simulation drives every moving part, number and plot ----------
 const DATA = __DATA__;
 const { P, D, VIEWS, WIRES, KS } = DATA;
-const K = { iso, pathOf, solidSvg, lineSvg, dotsSvg, coil, slabOf, circleRing };
+const K = { iso, pathOf, solidSvg, lineSvg, dotsSvg, coil, slabOf, circleRing, towardViewer };
 const ZA = D.ZA;
 const $ = (sel, root = document) => root.querySelector(sel) || document.createElement("div"); // missing parts of the page (the gallery figure) get a harmless stand-in
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -60,7 +60,10 @@ function drawDynamic(force = false) {
   dyn("c").innerHTML = `<g data-part="spring">${lineSvg(sp.front, { tone: "hi", className: "spring", free: "start" })}</g><g data-part="clevis">${cl.front}</g><g data-part="screw">${scr.near}</g>`;
   dyn("d").innerHTML = `<g data-part="screw">${scr.far}</g>`;
   dyn("ribbon").innerHTML = `<g data-part="ribbon">${ribbonSvg(K, P, D, xi + D.clevis[1])}</g>`;
-  $('[data-part="drum-marks"]', svg).innerHTML = lineSvg(drumMarks(K, P, D, -(rest - xi) / 9, ZA + 4.0), { tone: "lo" });
+  // ribbon paid out as the plunger pulls in turns the drum by payout / radius
+  const turn = (rest - xi) / 9;
+  $('[data-part="drum-marks"]', svg).innerHTML = lineSvg(drumMarks(K, P, D, turn, ZA + 4.0), { tone: "lo" });
+  $('[data-part="coil-marks"]', svg).innerHTML = coilMarks(K, P, D, turn, ZA - 3.2, ZA + 3.2);
   drawFringe(xi);
   if (typeof isolated !== "undefined" && isolated && ["plunger", "spring", "clevis", "screw", "ribbon"].includes(isolated)) drawIsolate();
 }

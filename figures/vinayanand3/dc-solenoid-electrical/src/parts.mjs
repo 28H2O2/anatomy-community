@@ -152,3 +152,20 @@ export function poleTipSvg(k, G, P, D, cone, z = D.ZA, dx = 0, body = false) {
   out += `<path class="cut c-brass" d="${k.pathOf(w, true)}"/><path class="cut-edge" d="${k.pathOf(w, true)}"/>`;
   return out;
 }
+
+// marks across the wound ribbon coil that turn with the drum: ribbon paid out over the drum radius.
+// Each mark fades toward the coil's limbs instead of stopping.
+export function coilMarks(k, P, D, turn, z0, z1, r = 9) {
+  const [cx, cy] = D.drum;
+  const view = k.towardViewer(P);
+  let out = "";
+  for (let n = 0; n < 12; n++) {
+    const a = turn + (n * Math.PI * 2) / 12;
+    const facing = Math.cos(a) * view[0] + Math.sin(a) * view[1];
+    if (facing <= 0.05) continue;
+    const alpha = Math.min(1, (facing - 0.05) / 0.45);
+    const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+    out += `<path class="iso-line" data-tone="mid" opacity="${alpha.toFixed(2)}" d="${k.pathOf([k.iso([x, y, z0], P), k.iso([x, y, z1], P)])}"/>`;
+  }
+  return out;
+}

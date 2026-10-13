@@ -276,7 +276,7 @@ function drumLower() {
   out.push(Dots(k.circleRing(cx, cy, 6, 4).map(([x, y]) => at([x, y, 2.4])), { size: 0.5 }));
   out.push(S(k.cylinder(cx, cy, 3, 2.4, ZA - 6.4, P, 24), "m-bracket", { inner: L(k.sideArc(cx, cy, 3, 12, P, 16), { tone: "faint" }) }));
   out.push(S(k.cylinder(cx, cy, 10.6, ZA - 4, 0.8, P, 56, 0.2), "m-zinc"));
-  out.push(`<g data-part="drum-coil">${S(k.cylinder(cx, cy, 9, ZA - 3.2, 6.4, P, 56), "m-ribbon", { inner: L([1.6, 3.2, 4.8].map((h) => k.sideArc(cx, cy, 9, ZA - 3.2 + h, P, 40)).join(""), { tone: "faint" }) })}</g>`);
+  out.push(`<g data-part="drum-coil">${S(k.cylinder(cx, cy, 9, ZA - 3.2, 6.4, P, 56), "m-ribbon", { inner: L([1.6, 3.2, 4.8].map((h) => k.sideArc(cx, cy, 9, ZA - 3.2 + h, P, 40)).join(""), { tone: "faint" }) })}<g class="m-ribbon" data-part="coil-marks">${PT.coilMarks(k, P, D, 0, ZA - 3.2, ZA + 3.2)}</g></g>`);
   return out.join("");
 }
 function drumUpper() {
