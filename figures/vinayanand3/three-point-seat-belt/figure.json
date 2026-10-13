@@ -2,7 +2,7 @@
   "id": "three-point-seat-belt",
   "title": "Three-Point Seat Belt",
   "author": "vinayanand3",
-  "prompt": "Use the anatomy skill and create a working figure for how a seat belt functions in a car: full belt path, interactive and animated, for engineers.",
+  "prompt": "Use the anatomy skill and create a working figure for how a seat belt functions in a car: full belt path, interactive and animated, for engineers. Then explain the seat belt retraction mechanism.",
   "kind": "SVG",
   "agent": "Claude Code",
   "model": "Claude Opus 5.5",
