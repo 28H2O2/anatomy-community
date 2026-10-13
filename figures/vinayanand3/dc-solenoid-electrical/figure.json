@@ -1,0 +1,31 @@
+{
+  "id": "dc-solenoid-electrical",
+  "title": "DC solenoid, electrical view",
+  "author": "vinayanand3",
+  "prompt": "Use the Anatomy skill to create an exceptionally detailed, technically accurate, interactive engineering visualization titled \"Inside a Solenoid: From Electricity to Mechanical Motion\": a spring-return DC pull solenoid with copper winding, bobbin, pole, plunger, return yoke, spring, guide sleeve and air gap, an energize toggle, current rise through the inductance, flux, force and flyback, all from one consistent physical model. Gallery version: the electrical view only, with the return yoke shown half transparent over the section, auto cycle on and playback at 1/95.",
+  "kind": "SVG",
+  "agent": "Other",
+  "model": "Claude Opus 5.5",
+  "skill": {
+    "kit": "sha256:88e307d515b00831262bb91c32be1c68e4c7d93e3f898f9cea8cfa7ee84ff425"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ]
+  ],
+  "pages": {
+    "light": "src/electrical.html"
+  },
+  "preview": "light",
+  "license": "MIT",
+  "tags": [
+    "solenoid",
+    "electromagnetism",
+    "automotive",
+    "circuit",
+    "actuator"
+  ],
+  "created": "2026-10-13"
+}
