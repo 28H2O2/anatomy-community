@@ -1,0 +1,36 @@
+{
+  "id": "ford-dps6-twin-clutch",
+  "title": "Ford PowerShift DPS6 twin dry clutch",
+  "author": "yishan",
+  "prompt": "/anatomy explain ford focus dps6 transmission",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "model": "claude-opus-5-5",
+  "minutes": 80,
+  "skill": {
+    "kit": "sha256:88e307d515b00831262bb91c32be1c68e4c7d93e3f898f9cea8cfa7ee84ff425"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/dps6-light.html",
+    "dark": "src/dps6.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "transmission",
+    "dual-clutch",
+    "automotive",
+    "gearbox"
+  ],
+  "created": "2026-10-13"
+}
