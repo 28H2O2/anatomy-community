@@ -1,0 +1,35 @@
+{
+  "id": "debounce-bench",
+  "title": "Debounce bench",
+  "author": "Nuzairb",
+  "prompt": "https://github.com/wheresryan22/anatomy setup this skill and build something unqiure with it that I can share it on X",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "model": "Claude Opus 5.5",
+  "minutes": 31,
+  "tokens": 236151,
+  "skill": {
+    "kit": "sha256:88e307d515b00831262bb91c32be1c68e4c7d93e3f898f9cea8cfa7ee84ff425"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/debounce-light.html",
+    "dark": "src/debounce.html"
+  },
+  "preview": "light",
+  "license": "MIT",
+  "tags": [
+    "mechanism",
+    "javascript",
+    "timing"
+  ],
+  "created": "2026-10-13"
+}
