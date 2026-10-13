@@ -1,0 +1,37 @@
+{
+  "id": "gitlab-runner-bench",
+  "title": "GitLab Runner job bench",
+  "author": "zzgosh",
+  "prompt": "/anatomy explain how gitlab runner works with gitlab ci/cd to run jobs in a pipeline",
+  "kind": "SVG",
+  "agent": "Claude Code",
+  "model": "Claude Opus 5.5",
+  "minutes": 158,
+  "tokens": 895837,
+  "skill": {
+    "kit": "sha256:88e307d515b00831262bb91c32be1c68e4c7d93e3f898f9cea8cfa7ee84ff425"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "light": "src/gitlab-runner-light.html",
+    "dark": "src/gitlab-runner.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "gitlab",
+    "ci-cd",
+    "runner",
+    "pipeline"
+  ],
+  "created": "2026-10-13"
+}
