@@ -1,0 +1,150 @@
+<!-- Anatomy geometry kit by Ryan
+MIT License
+
+Copyright (c) 2026 Ryan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<div id="brazil-shower">
+  <style>
+    #brazil-shower {
+      --anatomy-paper: var(--background);
+      --anatomy-face: var(--background);
+      --anatomy-top: color-mix(in srgb, var(--background) 98%, var(--foreground));
+      --anatomy-shade-0: color-mix(in srgb, var(--background) 76%, var(--foreground));
+      --anatomy-shade-1: color-mix(in srgb, var(--background) 83%, var(--foreground));
+      --anatomy-shade-2: color-mix(in srgb, var(--background) 89%, var(--foreground));
+      --anatomy-shade-3: color-mix(in srgb, var(--background) 94%, var(--foreground));
+      --anatomy-hi: color-mix(in srgb, var(--foreground) 75%, var(--background));
+      --anatomy-mid: color-mix(in srgb, var(--foreground) 44%, var(--background));
+      --anatomy-lo: color-mix(in srgb, var(--foreground) 28%, var(--background));
+      --anatomy-faint: color-mix(in srgb, var(--foreground) 13%, var(--background));
+      --anatomy-dot: var(--foreground);
+      --anatomy-lit: var(--foreground);
+      --anatomy-lit-top: var(--background);
+      --anatomy-lit-shade: var(--muted);
+      --anatomy-weight: .65px;
+      color: var(--foreground);
+    }
+    #brazil-shower .sh-head {display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline}
+    #brazil-shower .sh-head h3 {margin:0}
+    #brazil-shower .sh-view {position:relative;margin:4px 0 0}
+    #brazil-shower .sh-svg {display:block;width:100%;height:auto}
+    #brazil-shower .sh-controls {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:end;margin-top:12px}
+    #brazil-shower .sh-label {display:flex;gap:8px;justify-content:space-between;margin-bottom:8px}
+    #brazil-shower .sh-readout {display:flex;gap:8px 22px;justify-content:space-between;flex-wrap:wrap;padding:10px 0}
+    #brazil-shower .sh-caption {min-height:2.8em;margin-top:8px}
+    #brazil-shower .sh-legend {display:flex;flex-wrap:wrap;gap:8px 18px}
+    #brazil-shower .sh-legend span {display:inline-flex;align-items:center;gap:7px}
+    #brazil-shower .sh-legend i {display:inline-block;width:16px;height:3px;background:var(--foreground)}
+    #brazil-shower .sh-legend .sh-key-water {background:var(--blue)}
+    #brazil-shower .sh-legend .sh-key-heat {background:var(--orange)}
+    #brazil-shower .sh-hole {fill:var(--anatomy-shade-0);stroke:var(--anatomy-mid);stroke-width:.5}
+    #brazil-shower .sh-spray {fill:none;stroke:url(#sh-jet-fade);stroke-width:.7}
+    #brazil-shower .sh-droplet {fill:none;stroke:var(--blue);stroke-linecap:round;stroke-width:1.5;opacity:.6}
+    #brazil-shower .sh-flow-track {fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;opacity:.13}
+    #brazil-shower .sh-tracer {fill:var(--blue);opacity:.8}
+    #brazil-shower [data-part="heater-a"] .tb-body,
+    #brazil-shower [data-part="heater-b"] .tb-body {fill:var(--anatomy-shade-0)}
+    #brazil-shower .sh-energized .tb-body {fill:var(--orange)}
+    #brazil-shower .sh-energized .tb-shine {fill:color-mix(in srgb,var(--orange) 42%,var(--background))}
+    #brazil-shower .sh-energized .tb-shade {fill:color-mix(in srgb,var(--orange) 82%,var(--foreground))}
+    #brazil-shower .sh-energized .iso-line {stroke:var(--orange)}
+    #brazil-shower .sh-pressed .iso-edge {stroke:var(--foreground)}
+    #brazil-shower .sh-pressed .iso-top {fill:color-mix(in srgb,var(--blue) 12%,var(--background))}
+    @media(max-width:460px) {
+      #brazil-shower .sh-controls {grid-template-columns:1fr;gap:12px}
+      #brazil-shower .sh-head {gap:4px}
+    }
+    #brazil-shower .sh-switch-view {display:grid;grid-template-columns:minmax(280px,1.5fr) minmax(200px,1fr);gap:16px;align-items:center}
+    #brazil-shower .sh-switch-view svg {display:block;width:100%;height:auto;overflow:hidden}
+    #brazil-shower .sh-switch-view text {font-family:inherit;font-size:12px;fill:var(--foreground)}
+    #brazil-shower .sh-switch-view .ps-small {font-size:11px}
+    #brazil-shower .sh-switch-view .ps-label {font-weight:600}
+    #brazil-shower .ps-metal {fill:var(--anatomy-shade-0);stroke:var(--anatomy-hi);stroke-width:1}
+    #brazil-shower .ps-top {fill:var(--anatomy-top);stroke:var(--anatomy-hi);stroke-width:1}
+    #brazil-shower .ps-stem {fill:var(--anatomy-shade-2);stroke:var(--anatomy-hi);stroke-width:1}
+    #brazil-shower .ps-rubber {fill:var(--anatomy-mid);stroke:var(--anatomy-hi);stroke-width:1.2}
+    #brazil-shower .ps-leader {fill:none;stroke:var(--anatomy-mid);stroke-width:1}
+    #brazil-shower .ps-water {fill:color-mix(in srgb,var(--blue) 12%,var(--background));stroke:var(--blue);stroke-width:1}
+    #brazil-shower .ps-wire {fill:none;stroke:var(--anatomy-hi);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+    #brazil-shower .ps-live {stroke:var(--orange)}
+    #brazil-shower .ps-force {fill:none;stroke:var(--blue);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    #brazil-shower .ps-pad {fill:var(--foreground);stroke:var(--foreground);stroke-width:1}
+    #brazil-shower .ps-dot {fill:var(--foreground)}
+    #brazil-shower .sh-actions {margin-top:14px}
+    #brazil-shower [hidden] {display:none!important}
+    @media(max-width:580px) {#brazil-shower .sh-switch-view {grid-template-columns:1fr;gap:0} #brazil-shower .sh-circuit {max-width:360px;width:100%;justify-self:center}}
+    /* KIT_CSS */
+    #brazil-shower .sh-svg {overflow:hidden}
+  </style>
+  <div class="sh-head">
+    <h3>Brazilian electric shower</h3>
+    <span class="text-small text-muted">Anatomy · 220 V</span>
+  </div>
+  <div class="viz-row" role="group" aria-label="Explore the mechanism">
+    <button class="btn btn-ghost" type="button" data-focus="whole" aria-pressed="false">Whole shower</button>
+    <button class="btn btn-ghost" type="button" data-focus="switch" aria-pressed="true">Pressure switch</button>
+    <button class="btn btn-ghost" type="button" data-focus="heater" aria-pressed="false">Heating element</button>
+  </div>
+  <div class="iso-plate">
+  <div class="sh-switch-view">
+    <div class="sh-mechanism"><!-- PRESSURE --></div>
+    <div class="sh-circuit"><!-- CIRCUIT --></div>
+  </div>
+  <div class="sh-view" hidden>
+    <!-- GEOMETRY -->
+  </div>
+  </div>
+  <div class="sh-legend text-small">
+    <span><i class="sh-key-water" aria-hidden="true"></i>Water pressure / flow</span>
+    <span><i class="sh-key-heat" aria-hidden="true"></i>Current / active heater</span>
+    <span><i aria-hidden="true"></i>Insulated actuator</span>
+  </div>
+  <div class="viz-row sh-actions" role="group" aria-label="Water valve">
+    <button class="btn btn-primary" type="button" id="sh-tap" aria-pressed="true">Close tap</button>
+    <button class="btn" type="button" id="sh-replay">Replay opening</button>
+    <span id="sh-phase" class="text-small" aria-live="polite">Contacts touching · heater on</span>
+  </div>
+  <div class="sh-controls">
+    <label class="form-label" for="sh-mode">Heat setting
+      <select id="sh-mode" class="form-select">
+        <option value="cold">Cold · 0 W</option>
+        <option value="summer">Summer · 3,500 W</option>
+        <option value="winter" selected>Winter · 5,500 W</option>
+      </select>
+    </label>
+    <label class="form-label" for="sh-flow">
+      <span class="sh-label"><span>Water flow</span><output id="sh-flow-value">4.0 L/min</output></span>
+      <input id="sh-flow" class="form-range" type="range" min="3" max="8" step="0.1" value="4">
+    </label>
+  </div>
+  <div class="sh-readout">
+    <span>Inlet <strong>20.0 °C</strong></span>
+    <span>Est. outlet <strong id="sh-outlet">39.7 °C</strong></span>
+    <span>Current <strong id="sh-current">25.0 A</strong></span>
+  </div>
+  <div id="sh-detail" class="sh-caption text-small">Water pressure flexes the diaphragm. The insulated stem lifts the moving contact into the fixed contact, completing the heater circuit.</div>
+  <div class="text-small text-muted">Generic mechanism. Travel and gap enlarged. Circuit shows one pressure-switch pole. Ideal steady-state temperatures, illustrative summer rating. Colors indicate function.</div>
+  <script>
+    (() => {
+      /* RUNTIME */
+    })()
+  </script>
+</div>
