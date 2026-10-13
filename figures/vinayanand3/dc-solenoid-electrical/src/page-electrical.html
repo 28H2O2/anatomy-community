@@ -1,0 +1,24 @@
+<div class="gal">
+  __FIG1__
+  <div class="transport">
+    <button type="button" class="energize" data-act="energize" aria-pressed="false"><span class="dot"></span><span class="lbl">Energize</span></button>
+    <div class="tgroup">
+      <button type="button" class="tbtn" data-act="play" aria-label="Pause" title="Play / pause">❚❚</button>
+      <button type="button" class="tbtn" data-act="step" aria-label="Single step" title="Advance 0.2 ms">▸|</button>
+      <button type="button" class="tbtn" data-act="reset" aria-label="Reset simulation" title="Reset simulation">↺</button>
+    </div>
+    <label class="speed"><span>Playback</span><input type="range" min="0" max="100" value="40.07" data-act="speed" aria-label="Playback speed"><output data-out="speed">×1/95</output></label>
+    <label class="chk"><input type="checkbox" data-act="auto" checked> Auto cycle</label>
+    <label class="chk">Flyback <select data-p="flyback"><option value="diode" selected>Diode</option><option value="clamp">Diode + 33 V clamp</option><option value="none">None (fault)</option></select></label>
+    <div class="tgroup zoom">
+      <button type="button" class="tbtn" data-act="zoom-out" aria-label="Zoom out">−</button>
+      <button type="button" class="tbtn" data-act="zoom-in" aria-label="Zoom in">+</button>
+      <button type="button" class="tbtn wide" data-act="fit">Fit</button>
+    </div>
+  </div>
+  <div class="gal-row">
+    <div class="schem-wrap"><svg class="schem" viewBox="0 0 420 172" role="img" aria-label="Drive circuit"></svg><p class="pcap" data-out="scap"></p></div>
+    <div class="plots"><div class="ptabs" role="tablist" aria-label="Plot"><button type="button" data-plot="it" aria-selected="true">Coil current</button><button type="button" data-plot="xt">Plunger travel</button></div><svg class="plot" viewBox="0 0 420 250" role="img" aria-label="Plot"></svg><p class="pcap" data-out="pcap"></p></div>
+  </div>
+  <div class="status" data-status="rest"><span class="sdot"></span><span data-out="status">De-energized · at rest</span></div>
+</div>
