@@ -1,0 +1,37 @@
+{
+  "id": "brazilian-electric-shower",
+  "title": "Brazilian electric shower",
+  "author": "fmenegui",
+  "prompt": "/anatomy explain how a Brazilian electric shower works. Make the diaphragm and electrical contacts clear in an enlarged working cutaway. Use English throughout.",
+  "kind": "SVG",
+  "agent": "Codex",
+  "model": "GPT (Codex)",
+  "skill": {
+    "kit": "sha256:b2fbd67ae3c704977587339387fd68594824ef016e58a3db1339d5b2e0661081",
+    "commit": "689dcf966e63d92be10a5d593c6e19e10acd4422"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "dark": "src/shower.html",
+    "light": "src/shower-light.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "physics",
+    "electricity",
+    "mechanism",
+    "brazil",
+    "water"
+  ],
+  "created": "2026-10-13"
+}
