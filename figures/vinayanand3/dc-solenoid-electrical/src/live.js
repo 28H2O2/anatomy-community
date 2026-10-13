@@ -15,7 +15,7 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const ease = (u) => u * u * (3 - 2 * u);
 const f1 = (v, n = 2) => (Math.abs(v) < 0.5 * 10 ** -n ? 0 : v).toFixed(n);
 
-const MODE_VIEW = { whole: "full", cut: "sol", explode: "explode", flux: "tight", circuit: DATA.GALLERY ? "circuit" : "full", force: "sol", auto: "sol" };
+const MODE_VIEW = { whole: "full", cut: "sol", explode: "explode", flux: "tight", circuit: "full", force: "sol", auto: "sol" };
 const state = { raw: { ...DEFAULTS, reverse: false }, fault: "none", mode: "cut", speed: 1 / 50, slow: false, playing: !reduce.matches, auto: true, plot: "it" };
 let q = resolve(state.raw, state.fault);
 let s = newState();
