@@ -1,0 +1,37 @@
+{
+  "id": "aux-water-dispenser",
+  "title": "AUX Water Dispenser: Storage, Heating & Flow",
+  "author": "28H2O2",
+  "prompt": "用 Anatomy 根据奥克斯 YR-5-A 上置桶温热饮水机照片绘制内部结构。机器只有热水和常温水，没有烧水壶。重点画清常温水与热水的储存位置、热罐怎样加热、下部补水与上部出水；演示温控保温循环，并依据资料解释反复加热、蒸发浓缩和久置卫生。",
+  "kind": "SVG",
+  "agent": "Codex",
+  "model": "GPT (Codex)",
+  "skill": {
+    "kit": "sha256:88e307d515b00831262bb91c32be1c68e4c7d93e3f898f9cea8cfa7ee84ff425",
+    "commit": "e6600ffc4e8e6620eeb45bf49bcdbd5e4b84163f"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ],
+    [
+      "src/build.mjs"
+    ]
+  ],
+  "pages": {
+    "dark": "src/dispenser.html",
+    "light": "src/dispenser-light.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "everyday",
+    "water",
+    "heating",
+    "mechanism",
+    "cutaway"
+  ],
+  "created": "2026-10-14"
+}
