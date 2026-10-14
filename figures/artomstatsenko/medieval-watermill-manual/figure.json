@@ -1,0 +1,31 @@
+{
+  "id": "medieval-watermill-manual",
+  "title": "Medieval Watermill — Dimensioned Assembly Manual",
+  "author": "ArtomStatsenko",
+  "prompt": "Create a medieval watermill diagram; refine it into an IKEA-style assembly manual, add dimensions for a 3 m waterwheel, show details from different orientations, and correct the component inventory.",
+  "kind": "SVG",
+  "agent": "Codex",
+  "model": "GPT-6",
+  "skill": {
+    "kit": "sha256:88e307d515b00831262bb91c32be1c68e4c7d93e3f898f9cea8cfa7ee84ff425"
+  },
+  "build": [
+    [
+      "src/build.mjs",
+      "--light"
+    ]
+  ],
+  "pages": {
+    "light": "src/watermill.html"
+  },
+  "preview": "light",
+  "audit": true,
+  "license": "MIT",
+  "tags": [
+    "watermill",
+    "engineering",
+    "assembly",
+    "instructions"
+  ],
+  "created": "2026-10-14"
+}

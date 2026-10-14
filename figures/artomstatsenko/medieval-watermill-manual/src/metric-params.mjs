@@ -1,0 +1,3 @@
+export const SPEC=Object.freeze({wheelDiameterMm:3000,unitMm:3000/104,wheelRadius:52,shaftRadius:4.5,shaftBearingRadialClearanceMm:.5,stoneGapMm:.5,gearPitchRadius:23,gearTeeth:24,lanternPins:8,lanternPitchRadius:23/3,lanternPinRadius:1.3,gearToothTangentialWidth:1.9,gearToothTipX:-6,waterHeadM:3.25,assumedEfficiency:.6,assumedGearEfficiency:.85,wheelRpm:6});
+export const mm=v=>v*SPEC.unitMm;
+export const powerAt=qLps=>{const hydraulic=1000*9.81*(qLps/1000)*SPEC.waterHeadM,wheel=hydraulic*SPEC.assumedEfficiency,stone=wheel*SPEC.assumedGearEfficiency,omega=SPEC.wheelRpm*2*Math.PI/60;return {flowLps:qLps,hydraulicW:hydraulic,wheelW:wheel,stoneW:stone,shaftTorqueNm:wheel/omega}};
